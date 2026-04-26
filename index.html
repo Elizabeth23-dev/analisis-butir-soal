@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis Butir Soal - Kalkulator Statistik Instrumen Penelitian</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #1e1b4b 100%);
+            color: white;
+            padding: 3rem 1.5rem 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+            animation: pulse 6s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.15); opacity: 0.8; }
+        }
+        .hero h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            position: relative;
+            margin-bottom: 0.75rem;
+            letter-spacing: -0.5px;
+        }
+        .hero p {
+            font-size: 1.05rem;
+            opacity: 0.9;
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: -2rem;
+            position: relative;
+        }
+        .tool-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 1.75rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .tool-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 32px rgba(79,70,229,0.15);
+            border-color: var(--primary-light);
+        }
+        .tool-card .icon-box {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            flex-shrink: 0;
+        }
+        .tool-card h3 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+        .tool-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            flex: 1;
+        }
+        .tool-card .formula-preview {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            font-size: 1rem;
+            text-align: center;
+            color: var(--primary-dark);
+            font-weight: 600;
+            border: 1px dashed var(--border);
+        }
+        .tool-card .arrow {
+            margin-top: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .card-1 .icon-box { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #2563eb; }
+        .card-2 .icon-box { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
+        .card-3 .icon-box { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #16a34a; }
+        .card-4 .icon-box { background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #7c3aed; }
+        .card-5 .icon-box { background: linear-gradient(135deg, #fce7f3, #fbcfe8); color: #db2777; }
+
+        footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 2rem;
+        }
+        footer a { color: var(--primary); text-decoration: none; }
+
+        @media (max-width: 640px) {
+            .hero h1 { font-size: 1.6rem; }
+            .hero { padding: 2rem 1rem 3rem; }
+            .grid { grid-template-columns: 1fr; }
+            .container { padding: 1.5rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="hero">
+    <h1>Analisis Butir Soal</h1>
+    <p>Kumpulan kalkulator statistik untuk analisis instrumen penelitian. Semua perhitungan berjalan di peramban &mdash; data Anda tidak dikirim ke mana pun.</p>
+</div>
+
+<div class="container">
+    <div class="grid">
+
+        <a href="daya-pembeda.html" class="tool-card card-1">
+            <div class="icon-box">&#9998;</div>
+            <h3>Uji Daya Pembeda</h3>
+            <p>Analisis daya pembeda butir soal dengan klasifikasi otomatis berdasarkan Sundayana (2018) dan Fatimah &amp; Alfath (2019).</p>
+            <div class="formula-preview">DP = (SA - SB) / IA</div>
+            <span class="arrow">Buka Kalkulator &rarr;</span>
+        </a>
+
+        <a href="tingkat-kesukaran.html" class="tool-card card-2">
+            <div class="icon-box">&#9881;</div>
+            <h3>Uji Tingkat Kesukaran</h3>
+            <p>Analisis tingkat kesulitan butir soal berdasarkan rumus Sundayana (2018) dan kategori Arikunto (2010).</p>
+            <div class="formula-preview">TK = (SA + SB) / (IA + IB)</div>
+            <span class="arrow">Buka Kalkulator &rarr;</span>
+        </a>
+
+        <a href="cronbach-alpha.html" class="tool-card card-3">
+            <div class="icon-box">&#945;</div>
+            <h3>Reliabilitas Cronbach's Alpha</h3>
+            <p>Hitung reliabilitas instrumen penelitian secara otomatis dengan langkah perhitungan detail.</p>
+            <div class="formula-preview">&alpha; = n/(n-1) &times; {1 - &sum;si&sup2;/st&sup2;}</div>
+            <span class="arrow">Buka Kalkulator &rarr;</span>
+        </a>
+
+        <a href="validitas-konstruk.html" class="tool-card card-4">
+            <div class="icon-box">r</div>
+            <h3>Validitas Konstruk</h3>
+            <p>Uji validitas konstruk menggunakan korelasi Product Moment (Pearson) dengan tabel r otomatis.</p>
+            <div class="formula-preview">r<sub>XY</sub> = n&sum;XY - (&sum;X)(&sum;Y) / &radic;[...]</div>
+            <span class="arrow">Buka Kalkulator &rarr;</span>
+        </a>
+
+        <a href="validitas-isi.html" class="tool-card card-5">
+            <div class="icon-box">V</div>
+            <h3>Validitas Isi (Aiken's V)</h3>
+            <p>Hitung indeks validitas isi instrumen berdasarkan penilaian validator/ahli menggunakan rumus Aiken's V.</p>
+            <div class="formula-preview">V = &sum;S / [n(c - 1)]</div>
+            <span class="arrow">Buka Kalkulator &rarr;</span>
+        </a>
+
+    </div>
+</div>
+
+<footer>
+    <p>Analisis Butir Soal &mdash; Kalkulator Statistik Instrumen Penelitian</p>
+    <p style="margin-top:0.5rem;">Perhitungan berjalan sepenuhnya di peramban. Data Anda aman dan tidak dikirim ke server mana pun.</p>
+</footer>
+
+</body>
+</html>

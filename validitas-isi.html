@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kalkulator Validitas Isi (Aiken's V)</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #ffffff;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --accent: #2563eb;
+    --accent-2: #1d4ed8;
+    --good: #16a34a;
+    --warn: #d97706;
+    --bad: #dc2626;
+    --row-alt: #f8fafc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 60%);
+    color: #0f172a;
+    min-height: 100vh;
+  }
+  header {
+    padding: 28px 16px 12px;
+    text-align: center;
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+    color: var(--bg);
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 6px 20px -10px rgba(15, 23, 42, 0.15);
+    margin-bottom: 18px;
+  }
+  .formula {
+    text-align: center;
+    font-size: 18px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+    font-family: "Cambria Math", "Times New Roman", serif;
+  }
+  .formula small {
+    display: block;
+    margin-top: 6px;
+    color: var(--muted);
+    font-size: 12px;
+    font-family: inherit;
+  }
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 8px 18px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .legend b { color: #0f172a; }
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    align-items: end;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+  }
+  input[type="number"]:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .btn {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: transform .05s ease, background .15s ease;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-2); }
+  .btn-ghost { background: #f1f5f9; color: #0f172a; }
+  .btn-ghost:hover { background: #e2e8f0; }
+  .btn:active { transform: translateY(1px); }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    min-width: 640px;
+  }
+  th, td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    vertical-align: middle;
+  }
+  th {
+    background: #f1f5f9;
+    font-weight: 600;
+    color: #0f172a;
+  }
+  tbody tr:nth-child(even) td { background: var(--row-alt); }
+  td input.score {
+    width: 64px;
+    text-align: center;
+    padding: 6px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  td input.item-name {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    background: transparent;
+    text-align: left;
+  }
+  td input.item-name:focus {
+    border-color: var(--border);
+    background: #fff;
+  }
+  .v-cell { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .b-good { background: #dcfce7; color: var(--good); }
+  .b-mid  { background: #fef3c7; color: var(--warn); }
+  .b-low  { background: #fee2e2; color: var(--bad); }
+  .summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 6px;
+  }
+  .stat {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .stat .label { font-size: 12px; color: var(--muted); }
+  .stat .value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 16px;
+  }
+  .help {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  .invalid { background: #fee2e2 !important; }
+  details > summary {
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .criteria {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .criteria li { margin: 2px 0; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>Kalkulator Validitas Isi (Aiken's V)</h1>
+    <p>Hitung indeks validitas isi instrumen berdasarkan penilaian validator/ahli.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="formula">
+        V = ΣS / [ n (c − 1) ] , dengan S = r − l<sub>o</sub>
+        <small>l<sub>o</sub> = skor terendah · c = skor tertinggi · n = jumlah validator · r = skor validator</small>
+      </div>
+      <div class="legend">
+        <div><b>V</b> = validitas isi</div>
+        <div><b>S</b> = r − l<sub>o</sub></div>
+        <div><b>n</b> = jumlah validator</div>
+        <div><b>r</b> = skor yang diberikan validator</div>
+        <div><b>l<sub>o</sub></b> = skor terendah (default 1)</div>
+        <div><b>c</b> = skor tertinggi (default 4)</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="controls">
+        <div>
+          <label for="numValidators">Jumlah validator (n)</label>
+          <input type="number" id="numValidators" min="1" max="50" value="3" />
+        </div>
+        <div>
+          <label for="numItems">Jumlah butir/pernyataan</label>
+          <input type="number" id="numItems" min="1" max="200" value="5" />
+        </div>
+        <div>
+          <label for="lo">Skor terendah (l<sub>o</sub>)</label>
+          <input type="number" id="lo" min="0" value="1" />
+        </div>
+        <div>
+          <label for="c">Skor tertinggi (c)</label>
+          <input type="number" id="c" min="2" value="4" />
+        </div>
+        <div>
+          <button id="buildBtn" class="btn btn-primary">Buat Tabel</button>
+        </div>
+      </div>
+      <div class="help">
+        Klik <b>Buat Tabel</b> untuk menyusun ulang tabel sesuai jumlah validator &amp; butir.
+        Mengubah l<sub>o</sub>/c akan otomatis memperbarui hasil.
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="table-wrap">
+        <table id="dataTable" aria-label="Tabel skor validator">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button id="calcBtn" class="btn btn-primary">Hitung V</button>
+        <button id="fillBtn" class="btn btn-ghost" title="Isi seluruh sel dengan skor tertinggi">Isi Skor Maksimum</button>
+        <button id="clearBtn" class="btn btn-ghost">Kosongkan</button>
+      </div>
+      <div class="help">
+        Tip: gunakan <b>Tab</b> untuk pindah antar sel. Nilai harus dalam rentang
+        [<span id="loEcho">1</span>, <span id="cEcho">4</span>].
+      </div>
+    </section>
+
+    <section class="card">
+      <h3 style="margin-top:0">Hasil</h3>
+      <div class="summary" id="summary">
+        <div class="stat"><div class="label">V rata-rata instrumen</div><div class="value" id="vAvg">—</div></div>
+        <div class="stat"><div class="label">V minimum</div><div class="value" id="vMin">—</div></div>
+        <div class="stat"><div class="label">V maksimum</div><div class="value" id="vMax">—</div></div>
+        <div class="stat"><div class="label">Kesimpulan</div><div class="value" id="vConcl">—</div></div>
+      </div>
+      <details style="margin-top:14px">
+        <summary>Kriteria interpretasi (Aiken, 1985)</summary>
+        <ul class="criteria">
+          <li>V &lt; 0.4 &nbsp;&rarr; validitas rendah</li>
+          <li>0.4 ≤ V ≤ 0.8 &rarr; validitas sedang</li>
+          <li>V &gt; 0.8 &nbsp;&rarr; validitas tinggi</li>
+        </ul>
+      </details>
+    </section>
+  </main>
+
+  <footer>Dibuat untuk perhitungan Aiken's V · Skor di luar rentang akan ditandai merah.</footer>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const thead = document.querySelector("#dataTable thead");
+  const tbody = document.querySelector("#dataTable tbody");
+
+  const state = {
+    n: 3,
+    items: 5,
+    lo: 1,
+    c: 4,
+    itemNames: [],
+    scores: [], // scores[i][j] for item i, validator j
+  };
+
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function buildTable(preserve = false) {
+    const n = clamp(parseInt($("numValidators").value || "1", 10), 1, 50);
+    const items = clamp(parseInt($("numItems").value || "1", 10), 1, 200);
+    const lo = parseInt($("lo").value || "1", 10);
+    const c = parseInt($("c").value || "4", 10);
+
+    if (c <= lo) {
+      alert("Skor tertinggi (c) harus lebih besar dari skor terendah (lo).");
+      return;
+    }
+
+    const oldScores = preserve ? state.scores : [];
+    const oldNames = preserve ? state.itemNames : [];
+
+    state.n = n;
+    state.items = items;
+    state.lo = lo;
+    state.c = c;
+    state.itemNames = [];
+    state.scores = [];
+
+    $("numValidators").value = n;
+    $("numItems").value = items;
+    $("loEcho").textContent = lo;
+    $("cEcho").textContent = c;
+
+    // header
+    let headRow = "<tr><th style='width:48px'>No</th><th style='min-width:160px;text-align:left'>Butir / Pernyataan</th>";
+    for (let j = 0; j < n; j++) {
+      headRow += `<th>Validator ${j + 1}</th>`;
+    }
+    headRow += "<th>ΣS</th><th>V</th><th>Kategori</th></tr>";
+    thead.innerHTML = headRow;
+
+    // body
+    let bodyHtml = "";
+    for (let i = 0; i < items; i++) {
+      const name = (oldNames[i] != null) ? oldNames[i] : `Butir ${i + 1}`;
+      state.itemNames.push(name);
+      state.scores.push([]);
+      bodyHtml += `<tr data-item="${i}">`;
+      bodyHtml += `<td>${i + 1}</td>`;
+      bodyHtml += `<td><input class="item-name" data-i="${i}" value="${escapeHtml(name)}" /></td>`;
+      for (let j = 0; j < n; j++) {
+        const prev = (oldScores[i] && oldScores[i][j] != null) ? oldScores[i][j] : "";
+        state.scores[i].push(prev === "" ? null : Number(prev));
+        bodyHtml += `<td><input class="score" type="number" min="${lo}" max="${c}" step="1" data-i="${i}" data-j="${j}" value="${prev}" /></td>`;
+      }
+      bodyHtml += `<td class="sum-cell">—</td><td class="v-cell">—</td><td class="cat-cell">—</td>`;
+      bodyHtml += "</tr>";
+    }
+    tbody.innerHTML = bodyHtml;
+
+    // wire up listeners
+    tbody.querySelectorAll("input.score").forEach((el) => {
+      el.addEventListener("input", onScoreInput);
+      el.addEventListener("blur", calculate);
+    });
+    tbody.querySelectorAll("input.item-name").forEach((el) => {
+      el.addEventListener("input", (e) => {
+        const i = +e.target.dataset.i;
+        state.itemNames[i] = e.target.value;
+      });
+    });
+
+    calculate();
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  function onScoreInput(e) {
+    const i = +e.target.dataset.i;
+    const j = +e.target.dataset.j;
+    const raw = e.target.value;
+    if (raw === "") {
+      state.scores[i][j] = null;
+      e.target.classList.remove("invalid");
+    } else {
+      const v = Number(raw);
+      if (!Number.isFinite(v) || v < state.lo || v > state.c) {
+        e.target.classList.add("invalid");
+        state.scores[i][j] = null;
+      } else {
+        e.target.classList.remove("invalid");
+        state.scores[i][j] = v;
+      }
+    }
+    calculate();
+  }
+
+  function categorize(v) {
+    if (v == null || isNaN(v)) return { label: "—", cls: "" };
+    if (v > 0.8) return { label: "Tinggi", cls: "b-good" };
+    if (v >= 0.4) return { label: "Sedang", cls: "b-mid" };
+    return { label: "Rendah", cls: "b-low" };
+  }
+
+  function calculate() {
+    const { n, c, lo } = state;
+    const denom = n * (c - lo);
+    const rows = tbody.querySelectorAll("tr");
+    const vList = [];
+    rows.forEach((row, i) => {
+      const sumCell = row.querySelector(".sum-cell");
+      const vCell = row.querySelector(".v-cell");
+      const catCell = row.querySelector(".cat-cell");
+      const arr = state.scores[i] || [];
+      let sumS = 0;
+      let valid = true;
+      for (let j = 0; j < n; j++) {
+        const r = arr[j];
+        if (r == null || isNaN(r)) { valid = false; break; }
+        sumS += (r - lo);
+      }
+      if (!valid || denom <= 0) {
+        sumCell.textContent = "—";
+        vCell.textContent = "—";
+        catCell.innerHTML = "—";
+        return;
+      }
+      const v = sumS / denom;
+      vList.push(v);
+      sumCell.textContent = sumS;
+      vCell.textContent = v.toFixed(3);
+      const cat = categorize(v);
+      catCell.innerHTML = `<span class="badge ${cat.cls}">${cat.label}</span>`;
+    });
+
+    if (vList.length === 0) {
+      $("vAvg").textContent = "—";
+      $("vMin").textContent = "—";
+      $("vMax").textContent = "—";
+      $("vConcl").textContent = "—";
+      $("vConcl").className = "value";
+      return;
+    }
+    const avg = vList.reduce((a, b) => a + b, 0) / vList.length;
+    const mn = Math.min(...vList);
+    const mx = Math.max(...vList);
+    $("vAvg").textContent = avg.toFixed(3);
+    $("vMin").textContent = mn.toFixed(3);
+    $("vMax").textContent = mx.toFixed(3);
+    const cat = categorize(avg);
+    $("vConcl").innerHTML = `<span class="badge ${cat.cls}">${cat.label}</span>`;
+  }
+
+  function fillMax() {
+    const { n, c, items } = state;
+    for (let i = 0; i < items; i++) {
+      for (let j = 0; j < n; j++) {
+        state.scores[i][j] = c;
+        const inp = tbody.querySelector(`input.score[data-i="${i}"][data-j="${j}"]`);
+        if (inp) { inp.value = c; inp.classList.remove("invalid"); }
+      }
+    }
+    calculate();
+  }
+
+  function clearAll() {
+    const { n, items } = state;
+    for (let i = 0; i < items; i++) {
+      for (let j = 0; j < n; j++) {
+        state.scores[i][j] = null;
+        const inp = tbody.querySelector(`input.score[data-i="${i}"][data-j="${j}"]`);
+        if (inp) { inp.value = ""; inp.classList.remove("invalid"); }
+      }
+    }
+    calculate();
+  }
+
+  $("buildBtn").addEventListener("click", () => buildTable(true));
+  $("calcBtn").addEventListener("click", calculate);
+  $("fillBtn").addEventListener("click", fillMax);
+  $("clearBtn").addEventListener("click", clearAll);
+  ["lo", "c"].forEach((id) => {
+    $(id).addEventListener("change", () => buildTable(true));
+  });
+
+  buildTable(false);
+})();
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

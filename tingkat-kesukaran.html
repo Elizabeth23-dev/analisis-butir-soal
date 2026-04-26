@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uji Tingkat Kesukaran Soal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #818cf8;
+            --primary-dark: #3730a3;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --sangat-sukar: #dc2626;
+            --sukar: #ea580c;
+            --sedang: #f59e0b;
+            --mudah: #22c55e;
+            --sangat-mudah: #0ea5e9;
+            --radius: 12px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .header h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            position: relative;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            position: relative;
+        }
+
+        .formula-display {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: var(--radius);
+            padding: 1rem 1.5rem;
+            margin-top: 1rem;
+            display: inline-block;
+            position: relative;
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+            transition: box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title .icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85rem;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--card);
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .mode-btn:hover {
+            border-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .mode-btn.active {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(79,70,229,0.05) 0%, rgba(129,140,248,0.1) 100%);
+            color: var(--primary);
+        }
+
+        .mode-btn .mode-title {
+            font-weight: 600;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .mode-btn .mode-desc {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 0.375rem;
+        }
+
+        .form-group .hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.375rem;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--text);
+            background: var(--card);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .score-table-container {
+            overflow-x: auto;
+            margin-top: 0.5rem;
+        }
+
+        .score-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .score-table th, .score-table td {
+            padding: 0.5rem 0.75rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .score-table th {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .score-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .score-table input {
+            width: 70px;
+            padding: 0.375rem;
+            text-align: center;
+            border: 1.5px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .score-table .group-upper {
+            background: rgba(16,185,129,0.08);
+        }
+
+        .score-table .group-lower {
+            background: rgba(239,68,68,0.08);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(79,70,229,0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79,70,229,0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1.5px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .add-soal-btn {
+            width: 100%;
+            padding: 0.625rem;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .add-soal-btn:hover {
+            border-color: var(--primary-light);
+            color: var(--primary);
+            background: rgba(79,70,229,0.03);
+        }
+
+        /* Results */
+        .result-section {
+            display: none;
+        }
+
+        .result-section.visible {
+            display: block;
+        }
+
+        .result-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .result-card .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .result-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.25rem 0;
+        }
+
+        .result-card .sub {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .tk-badge {
+            display: inline-block;
+            padding: 0.375rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: white;
+        }
+
+        .tk-sangat-sukar { background: var(--sangat-sukar); }
+        .tk-sukar { background: var(--sukar); }
+        .tk-sedang { background: var(--sedang); color: #1e293b; }
+        .tk-mudah { background: var(--mudah); }
+        .tk-sangat-mudah { background: var(--sangat-mudah); }
+
+        .result-detail-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+
+        .result-detail-table th, .result-detail-table td {
+            padding: 0.625rem 0.875rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .result-detail-table th {
+            background: var(--bg);
+            font-weight: 600;
+            color: var(--text);
+            font-size: 0.85rem;
+        }
+
+        .result-detail-table tr:hover {
+            background: rgba(79,70,229,0.03);
+        }
+
+        .interpretation-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .interpretation-table th, .interpretation-table td {
+            padding: 0.625rem 0.875rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .interpretation-table th {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            font-weight: 600;
+        }
+
+        .interpretation-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .group-info {
+            background: rgba(79,70,229,0.05);
+            border: 1px solid rgba(79,70,229,0.15);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            margin-top: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--primary-dark);
+        }
+
+        .group-info strong {
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-btn {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            background: transparent;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+        }
+
+        .tab-btn.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .soal-nav {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .soal-nav-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1.5px solid var(--border);
+            background: var(--card);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .soal-nav-btn:hover {
+            border-color: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .soal-nav-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .soal-panel {
+            display: none;
+        }
+
+        .soal-panel.active {
+            display: block;
+        }
+
+        .remove-soal-btn {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .remove-soal-btn:hover {
+            background: rgba(239,68,68,0.1);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Print styles */
+        @media print {
+            .header { padding: 1rem; }
+            .btn, .mode-selector, .add-soal-btn, .soal-nav, .remove-soal-btn { display: none !important; }
+            .card { box-shadow: none; border: 1px solid #ccc; }
+            .result-section.visible { display: block !important; }
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .header h1 { font-size: 1.35rem; }
+            .input-row { grid-template-columns: 1fr; }
+            .result-summary { grid-template-columns: 1fr 1fr; }
+            .container { padding: 1rem 0.75rem; }
+            .card { padding: 1.25rem; }
+            .mode-btn { min-width: 140px; }
+        }
+
+        .manual-multi-soal .soal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .manual-multi-soal .soal-title {
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        /* Progress bar for TK */
+        .tk-bar-container {
+            width: 100%;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .tk-bar {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.6s ease;
+        }
+
+        .alert {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+        }
+
+        .alert-info {
+            background: rgba(59,130,246,0.08);
+            border: 1px solid rgba(59,130,246,0.2);
+            color: #1e40af;
+        }
+
+        .alert-warning {
+            background: rgba(245,158,11,0.08);
+            border: 1px solid rgba(245,158,11,0.2);
+            color: #92400e;
+        }
+
+        /* Hide sections based on mode */
+        .mode-section { display: none; }
+        .mode-section.active { display: block; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Uji Tingkat Kesukaran Soal</h1>
+    <p>Analisis tingkat kesulitan butir soal berdasarkan rumus Sundayana (2018)</p>
+    <div class="formula-display">
+        TK = (SA + SB) / (IA + IB)
+    </div>
+</div>
+
+<div class="container">
+
+    <!-- Interpretation Reference Table -->
+    <div class="card">
+        <div class="card-title">
+            <div class="icon">i</div>
+            Kategori Tingkat Kesukaran (Arikunto, 2010)
+        </div>
+        <table class="interpretation-table">
+            <thead>
+                <tr>
+                    <th>Nilai TK</th>
+                    <th>Interpretasi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>TK = 0</td><td><span class="tk-badge tk-sangat-sukar">Sangat Sukar</span></td></tr>
+                <tr><td>0,00 &lt; TK &le; 0,30</td><td><span class="tk-badge tk-sukar">Sukar</span></td></tr>
+                <tr><td>0,30 &lt; TK &le; 0,70</td><td><span class="tk-badge tk-sedang">Sedang</span></td></tr>
+                <tr><td>0,70 &lt; TK &lt; 1,00</td><td><span class="tk-badge tk-mudah">Mudah</span></td></tr>
+                <tr><td>TK = 1</td><td><span class="tk-badge tk-sangat-mudah">Sangat Mudah</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mode Selection -->
+    <div class="card">
+        <div class="card-title">
+            <div class="icon">1</div>
+            Pilih Mode Input
+        </div>
+        <div class="mode-selector">
+            <button class="mode-btn active" onclick="setMode('manual')" id="mode-manual">
+                <span class="mode-title">Input Skor Peserta</span>
+                <span class="mode-desc">Masukkan skor tiap peserta, kelompok otomatis</span>
+            </button>
+            <button class="mode-btn" onclick="setMode('direct')" id="mode-direct">
+                <span class="mode-title">Input Langsung SA, SB, IA, IB</span>
+                <span class="mode-desc">Masukkan nilai langsung per butir soal</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Mode: Manual Input (Score per student) -->
+    <div class="mode-section active" id="section-manual">
+        <div class="card">
+            <div class="card-title">
+                <div class="icon">2</div>
+                Data Peserta & Skor
+            </div>
+
+            <div class="input-row">
+                <div class="form-group">
+                    <label for="jumlahPeserta">Jumlah Peserta</label>
+                    <input type="number" id="jumlahPeserta" min="2" max="500" value="10" onchange="generateScoreTable()">
+                </div>
+                <div class="form-group">
+                    <label for="jumlahSoal">Jumlah Butir Soal</label>
+                    <input type="number" id="jumlahSoal" min="1" max="100" value="5" onchange="generateScoreTable()">
+                </div>
+            </div>
+
+            <div class="input-row">
+                <div class="form-group">
+                    <label for="skorMaksimal">Skor Maksimal per Soal</label>
+                    <input type="number" id="skorMaksimal" min="1" max="100" value="1" onchange="generateScoreTable()">
+                    <div class="hint">Skor ideal tiap butir soal (misal: 1 untuk pilihan ganda, atau skor maksimal untuk esai)</div>
+                </div>
+            </div>
+
+            <div id="groupInfo" class="group-info" style="display:none;"></div>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="generateScoreTable()">Buat Tabel Skor</button>
+            </div>
+
+            <div id="scoreTableContainer" class="score-table-container" style="margin-top:1rem;"></div>
+
+            <div class="btn-group" id="calcBtnManual" style="display:none;">
+                <button class="btn btn-primary" onclick="calculateManual()">Hitung Tingkat Kesukaran</button>
+                <button class="btn btn-secondary" onclick="resetManual()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mode: Direct Input -->
+    <div class="mode-section" id="section-direct">
+        <div class="card">
+            <div class="card-title">
+                <div class="icon">2</div>
+                Input Nilai Langsung
+            </div>
+
+            <div class="alert alert-info">
+                Masukkan nilai SA, SB, IA, dan IB untuk setiap butir soal yang ingin dianalisis.
+            </div>
+
+            <div id="directSoalContainer" class="manual-multi-soal"></div>
+
+            <button class="add-soal-btn" onclick="addDirectSoal()">+ Tambah Butir Soal</button>
+
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="calculateDirect()">Hitung Tingkat Kesukaran</button>
+                <button class="btn btn-secondary" onclick="resetDirect()">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="result-section" id="resultSection">
+        <div class="card">
+            <div class="card-title">
+                <div class="icon">&#10003;</div>
+                Hasil Analisis Tingkat Kesukaran
+            </div>
+
+            <div id="resultSummaryCards" class="result-summary"></div>
+
+            <div id="resultDetailContainer"></div>
+        </div>
+    </div>
+
+</div>
+
+<div class="footer">
+    Uji Tingkat Kesukaran Soal &mdash; Berdasarkan rumus Sundayana (2018) &amp; Kategori Arikunto (2010)
+</div>
+
+<script>
+    let currentMode = 'manual';
+    let directSoalCount = 0;
+
+    function setMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('mode-' + mode).classList.add('active');
+        document.querySelectorAll('.mode-section').forEach(s => s.classList.remove('active'));
+        document.getElementById('section-' + mode).classList.add('active');
+        document.getElementById('resultSection').classList.remove('visible');
+
+        if (mode === 'direct' && directSoalCount === 0) {
+            addDirectSoal();
+        }
+    }
+
+    // ==================== Manual Mode ====================
+
+    function generateScoreTable() {
+        const n = parseInt(document.getElementById('jumlahPeserta').value) || 0;
+        const soal = parseInt(document.getElementById('jumlahSoal').value) || 0;
+        const maxSkor = parseInt(document.getElementById('skorMaksimal').value) || 1;
+
+        if (n < 2 || soal < 1) return;
+
+        // Show grouping info
+        const groupInfo = document.getElementById('groupInfo');
+        let groupSize, method;
+        if (n > 30) {
+            groupSize = Math.ceil(n * 0.27);
+            method = '27%';
+        } else {
+            groupSize = Math.ceil(n * 0.5);
+            method = '50%';
+        }
+        groupInfo.style.display = 'block';
+        groupInfo.innerHTML = `<strong>Info Pengelompokan:</strong> Jumlah peserta = ${n} (${n > 30 ? '> 30' : '&le; 30'}), maka diambil <strong>${method}</strong> kelompok atas &amp; bawah = <strong>${groupSize} peserta</strong> per kelompok.`;
+
+        // Build table
+        let html = '<table class="score-table"><thead><tr><th>No</th><th>Peserta</th>';
+        for (let j = 1; j <= soal; j++) {
+            html += `<th>Soal ${j}</th>`;
+        }
+        html += '<th>Total</th></tr></thead><tbody>';
+
+        for (let i = 1; i <= n; i++) {
+            html += `<tr><td>${i}</td><td>Peserta ${i}</td>`;
+            for (let j = 1; j <= soal; j++) {
+                html += `<td><input type="number" min="0" max="${maxSkor}" value="0" id="skor_${i}_${j}" onchange="updateTotal(${i}, ${soal})"></td>`;
+            }
+            html += `<td id="total_${i}" style="font-weight:600;">0</td></tr>`;
+        }
+
+        html += '</tbody></table>';
+
+        document.getElementById('scoreTableContainer').innerHTML = html;
+        document.getElementById('calcBtnManual').style.display = 'flex';
+    }
+
+    function updateTotal(pesertaIdx, soalCount) {
+        let total = 0;
+        for (let j = 1; j <= soalCount; j++) {
+            const val = parseFloat(document.getElementById(`skor_${pesertaIdx}_${j}`).value) || 0;
+            total += val;
+        }
+        document.getElementById(`total_${pesertaIdx}`).textContent = total;
+    }
+
+    function calculateManual() {
+        const n = parseInt(document.getElementById('jumlahPeserta').value);
+        const soal = parseInt(document.getElementById('jumlahSoal').value);
+        const maxSkor = parseInt(document.getElementById('skorMaksimal').value) || 1;
+
+        // Collect all scores
+        let pesertaData = [];
+        for (let i = 1; i <= n; i++) {
+            let scores = [];
+            let total = 0;
+            for (let j = 1; j <= soal; j++) {
+                const val = parseFloat(document.getElementById(`skor_${i}_${j}`).value) || 0;
+                scores.push(val);
+                total += val;
+            }
+            pesertaData.push({ index: i, scores: scores, total: total });
+        }
+
+        // Sort by total descending
+        pesertaData.sort((a, b) => b.total - a.total);
+
+        // Determine group sizes
+        let groupSize;
+        if (n > 30) {
+            groupSize = Math.ceil(n * 0.27);
+        } else {
+            groupSize = Math.ceil(n * 0.5);
+        }
+
+        const upperGroup = pesertaData.slice(0, groupSize);
+        const lowerGroup = pesertaData.slice(n - groupSize);
+
+        // Calculate TK for each soal
+        let results = [];
+        for (let j = 0; j < soal; j++) {
+            let SA = 0, SB = 0;
+            upperGroup.forEach(p => SA += p.scores[j]);
+            lowerGroup.forEach(p => SB += p.scores[j]);
+
+            const IA = groupSize * maxSkor;
+            const IB = groupSize * maxSkor;
+            const TK = (IA + IB) === 0 ? 0 : (SA + SB) / (IA + IB);
+
+            results.push({
+                soal: j + 1,
+                SA: SA,
+                SB: SB,
+                IA: IA,
+                IB: IB,
+                TK: TK,
+                interpretasi: getInterpretasi(TK)
+            });
+        }
+
+        displayResults(results, groupSize, n);
+    }
+
+    function resetManual() {
+        document.getElementById('scoreTableContainer').innerHTML = '';
+        document.getElementById('calcBtnManual').style.display = 'none';
+        document.getElementById('groupInfo').style.display = 'none';
+        document.getElementById('resultSection').classList.remove('visible');
+    }
+
+    // ==================== Direct Mode ====================
+
+    function addDirectSoal() {
+        directSoalCount++;
+        const idx = directSoalCount;
+        const container = document.getElementById('directSoalContainer');
+
+        const div = document.createElement('div');
+        div.className = 'soal-panel active';
+        div.id = `directSoal_${idx}`;
+        div.innerHTML = `
+            <div class="soal-header">
+                <span class="soal-title">Butir Soal ${idx}</span>
+                ${idx > 1 ? `<button class="remove-soal-btn" onclick="removeDirectSoal(${idx})">Hapus</button>` : ''}
+            </div>
+            <div class="input-row">
+                <div class="form-group">
+                    <label>SA (Skor Kelompok Atas)</label>
+                    <input type="number" min="0" step="any" id="direct_SA_${idx}" value="0">
+                </div>
+                <div class="form-group">
+                    <label>SB (Skor Kelompok Bawah)</label>
+                    <input type="number" min="0" step="any" id="direct_SB_${idx}" value="0">
+                </div>
+            </div>
+            <div class="input-row">
+                <div class="form-group">
+                    <label>IA (Skor Ideal Kel. Atas)</label>
+                    <input type="number" min="0" step="any" id="direct_IA_${idx}" value="0">
+                </div>
+                <div class="form-group">
+                    <label>IB (Skor Ideal Kel. Bawah)</label>
+                    <input type="number" min="0" step="any" id="direct_IB_${idx}" value="0">
+                </div>
+            </div>
+            <hr style="border:none;border-top:1px solid var(--border);margin:1rem 0 0.5rem;">
+        `;
+        container.appendChild(div);
+    }
+
+    function removeDirectSoal(idx) {
+        const el = document.getElementById(`directSoal_${idx}`);
+        if (el) el.remove();
+    }
+
+    function calculateDirect() {
+        const panels = document.querySelectorAll('#directSoalContainer .soal-panel');
+        let results = [];
+        let soalNum = 1;
+
+        panels.forEach(panel => {
+            const id = panel.id.split('_')[1];
+            const SA = parseFloat(document.getElementById(`direct_SA_${id}`).value) || 0;
+            const SB = parseFloat(document.getElementById(`direct_SB_${id}`).value) || 0;
+            const IA = parseFloat(document.getElementById(`direct_IA_${id}`).value) || 0;
+            const IB = parseFloat(document.getElementById(`direct_IB_${id}`).value) || 0;
+
+            const TK = (IA + IB) === 0 ? 0 : (SA + SB) / (IA + IB);
+
+            results.push({
+                soal: soalNum++,
+                SA: SA,
+                SB: SB,
+                IA: IA,
+                IB: IB,
+                TK: TK,
+                interpretasi: getInterpretasi(TK)
+            });
+        });
+
+        displayResults(results, null, null);
+    }
+
+    function resetDirect() {
+        directSoalCount = 0;
+        document.getElementById('directSoalContainer').innerHTML = '';
+        document.getElementById('resultSection').classList.remove('visible');
+        addDirectSoal();
+    }
+
+    // ==================== Shared Functions ====================
+
+    function getInterpretasi(tk) {
+        if (tk === 0) return { label: 'Sangat Sukar', cls: 'tk-sangat-sukar', color: 'var(--sangat-sukar)' };
+        if (tk > 0 && tk <= 0.30) return { label: 'Sukar', cls: 'tk-sukar', color: 'var(--sukar)' };
+        if (tk > 0.30 && tk <= 0.70) return { label: 'Sedang', cls: 'tk-sedang', color: 'var(--sedang)' };
+        if (tk > 0.70 && tk < 1.00) return { label: 'Mudah', cls: 'tk-mudah', color: 'var(--mudah)' };
+        if (tk === 1) return { label: 'Sangat Mudah', cls: 'tk-sangat-mudah', color: 'var(--sangat-mudah)' };
+        // Handle edge cases (TK > 1 or TK < 0)
+        if (tk >= 1) return { label: 'Sangat Mudah', cls: 'tk-sangat-mudah', color: 'var(--sangat-mudah)' };
+        return { label: 'Tidak Valid', cls: '', color: '#999' };
+    }
+
+    function displayResults(results, groupSize, totalPeserta) {
+        const section = document.getElementById('resultSection');
+        section.classList.add('visible');
+
+        // Summary cards
+        const avgTK = results.reduce((s, r) => s + r.TK, 0) / results.length;
+        const avgInterp = getInterpretasi(avgTK);
+
+        // Count by category
+        const counts = { 'Sangat Sukar': 0, 'Sukar': 0, 'Sedang': 0, 'Mudah': 0, 'Sangat Mudah': 0 };
+        results.forEach(r => { if (counts[r.interpretasi.label] !== undefined) counts[r.interpretasi.label]++; });
+
+        let summaryHtml = `
+            <div class="result-card">
+                <div class="label">Jumlah Soal</div>
+                <div class="value" style="color: var(--primary);">${results.length}</div>
+            </div>
+            <div class="result-card">
+                <div class="label">Rata-rata TK</div>
+                <div class="value" style="color: ${avgInterp.color};">${avgTK.toFixed(3)}</div>
+                <div class="sub"><span class="tk-badge ${avgInterp.cls}">${avgInterp.label}</span></div>
+            </div>
+        `;
+
+        if (totalPeserta) {
+            summaryHtml += `
+                <div class="result-card">
+                    <div class="label">Jumlah Peserta</div>
+                    <div class="value" style="color: var(--info);">${totalPeserta}</div>
+                    <div class="sub">Kel. Atas/Bawah: ${groupSize}</div>
+                </div>
+            `;
+        }
+
+        document.getElementById('resultSummaryCards').innerHTML = summaryHtml;
+
+        // Detail table
+        let detailHtml = `
+            <h3 style="font-size:1rem;font-weight:600;margin-bottom:0.75rem;color:var(--text);">Detail per Butir Soal</h3>
+            <div class="score-table-container">
+                <table class="result-detail-table">
+                    <thead>
+                        <tr>
+                            <th>Butir Soal</th>
+                            <th>SA</th>
+                            <th>SB</th>
+                            <th>IA</th>
+                            <th>IB</th>
+                            <th>TK</th>
+                            <th>Interpretasi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        results.forEach(r => {
+            const barWidth = Math.min(r.TK * 100, 100);
+            detailHtml += `
+                <tr>
+                    <td style="font-weight:600;">Soal ${r.soal}</td>
+                    <td>${r.SA}</td>
+                    <td>${r.SB}</td>
+                    <td>${r.IA}</td>
+                    <td>${r.IB}</td>
+                    <td>
+                        <strong>${r.TK.toFixed(3)}</strong>
+                        <div class="tk-bar-container">
+                            <div class="tk-bar" style="width:${barWidth}%;background:${r.interpretasi.color};"></div>
+                        </div>
+                    </td>
+                    <td><span class="tk-badge ${r.interpretasi.cls}">${r.interpretasi.label}</span></td>
+                </tr>
+            `;
+        });
+
+        detailHtml += '</tbody></table></div>';
+
+        // Distribution summary
+        detailHtml += `
+            <h3 style="font-size:1rem;font-weight:600;margin:1.5rem 0 0.75rem;color:var(--text);">Distribusi Tingkat Kesukaran</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0.5rem;">
+        `;
+
+        const catOrder = ['Sangat Sukar', 'Sukar', 'Sedang', 'Mudah', 'Sangat Mudah'];
+        const catCls = ['tk-sangat-sukar', 'tk-sukar', 'tk-sedang', 'tk-mudah', 'tk-sangat-mudah'];
+        catOrder.forEach((cat, i) => {
+            const pct = results.length > 0 ? ((counts[cat] / results.length) * 100).toFixed(1) : 0;
+            detailHtml += `
+                <div style="text-align:center;padding:0.75rem;border-radius:8px;border:1px solid var(--border);">
+                    <div style="font-size:1.5rem;font-weight:700;">${counts[cat]}</div>
+                    <span class="tk-badge ${catCls[i]}" style="font-size:0.75rem;">${cat}</span>
+                    <div style="font-size:0.8rem;color:var(--text-muted);margin-top:0.25rem;">${pct}%</div>
+                </div>
+            `;
+        });
+
+        detailHtml += '</div>';
+
+        document.getElementById('resultDetailContainer').innerHTML = detailHtml;
+
+        // Scroll to results
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        generateScoreTable();
+    });
+</script>
+
+<script src="nav.js"></script>
+</body>
+</html>
