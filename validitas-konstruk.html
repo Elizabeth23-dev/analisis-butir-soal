@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Validitas Konstruk - Korelasi Product Moment (Pearson)</title>
+<style>
+:root {
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --text: #1c2536;
+  --muted: #5b6677;
+  --primary: #2b6cb0;
+  --primary-dark: #1e4e85;
+  --accent: #10b981;
+  --danger: #dc2626;
+  --border: #e2e8f0;
+  --thead: #eef2f7;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+
+.topbar {
+  background: linear-gradient(135deg, #1e4e85 0%, #2b6cb0 100%);
+  color: #fff;
+  padding: 28px 0 24px;
+  border-bottom: 1px solid rgba(0,0,0,.05);
+  margin-bottom: 20px;
+}
+.topbar h1 { margin: 0 0 4px; font-size: 22px; }
+.topbar .subtitle { margin: 0; opacity: .9; font-size: 14px; }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 2px rgba(18,38,63,.04);
+}
+.card h2 { margin: 0 0 12px; font-size: 17px; }
+.card h3 { font-size: 15px; margin: 18px 0 8px; color: var(--muted); }
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 6px;
+}
+.row label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: var(--muted);
+  gap: 4px;
+  min-width: 140px;
+}
+.row input[type=number], .row select, .row input[type=text] {
+  font: inherit;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+  min-width: 120px;
+}
+.hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+button, .file-btn {
+  font: inherit;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  transition: background .12s, border-color .12s, color .12s;
+}
+button:hover, .file-btn:hover { background: #f1f5fb; }
+button.primary {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+button.primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+.file-btn { display: inline-flex; align-items: center; gap: 6px; }
+
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  min-width: 520px;
+}
+thead th {
+  background: var(--thead);
+  text-align: center;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  font-weight: 600;
+}
+tbody td, tfoot td {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+tbody td:first-child { text-align: left; font-weight: 500; }
+tfoot td { background: #fafcff; font-size: 13px; }
+
+table input[type=number] {
+  width: 70px;
+  padding: 4px 6px;
+  text-align: center;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+}
+table input[type=text] {
+  width: 120px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font: inherit;
+}
+
+.valid { color: var(--accent); font-weight: 700; }
+.invalid { color: var(--danger); font-weight: 700; }
+.muted { color: var(--muted); font-size: 13px; text-align: left; }
+
+/* Formula rendering */
+.formula {
+  font-size: 18px;
+  text-align: center;
+  padding: 8px 0 14px;
+}
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+  text-align: center;
+  margin: 0 4px;
+}
+.frac .num { border-bottom: 1.5px solid var(--text); padding: 0 8px 2px; }
+.frac .den { padding: 2px 8px 0; }
+.sqrt-body { border-top: 1.5px solid var(--text); padding-top: 2px; display: inline-block; }
+
+.legend { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13px; }
+.legend li { margin-bottom: 2px; }
+
+.note {
+  margin: 10px 0 0;
+  padding: 8px 10px;
+  background: #f0f9ff;
+  border-left: 3px solid var(--primary);
+  font-size: 13px;
+}
+
+.footer {
+  margin: 24px 0 40px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.detail-block {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: #fafcff;
+  font-size: 13px;
+}
+.detail-block h4 { margin: 0 0 6px; font-size: 14px; }
+.detail-block .eq { font-family: "Courier New", monospace; font-size: 13px; margin: 2px 0; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="container">
+    <h1>Uji Validitas Konstruk</h1>
+    <p class="subtitle">Korelasi Product Moment (Pearson) &mdash; <em>r<sub>XY</sub></em></p>
+  </div>
+</header>
+
+<main class="container">
+
+  <section class="card">
+    <h2>1. Rumus</h2>
+    <div class="formula">
+      r<sub>XY</sub> =
+      <span class="frac">
+        <span class="num">n&sum;XY &minus; (&sum;X)(&sum;Y)</span>
+        <span class="den">&radic;<span class="sqrt-body">[ n&sum;X&sup2; &minus; (&sum;X)&sup2; ] &middot; [ n&sum;Y&sup2; &minus; (&sum;Y)&sup2; ]</span></span>
+      </span>
+    </div>
+    <ul class="legend">
+      <li><b>r<sub>XY</sub></b> = indeks korelasi</li>
+      <li><b>X</b> = skor peserta didik pada tiap butir soal</li>
+      <li><b>Y</b> = skor total peserta didik di seluruh butir soal</li>
+      <li><b>&sum;X</b> = jumlah skor pada butir soal tersebut</li>
+      <li><b>&sum;Y</b> = jumlah skor total seluruh peserta</li>
+      <li><b>n</b> = jumlah peserta didik</li>
+    </ul>
+    <p class="note">
+      Jika <b>r<sub>hitung</sub> &gt; r<sub>tabel</sub></b> &rarr; butir <b>valid</b>.
+      Jika <b>r<sub>hitung</sub> &lt; r<sub>tabel</sub></b> &rarr; butir <b>tidak valid</b>.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>2. Pengaturan Data</h2>
+    <div class="row">
+      <label>Jumlah Peserta (n)
+        <input type="number" id="nPeserta" min="2" value="10" />
+      </label>
+      <label>Jumlah Butir Soal
+        <input type="number" id="nButir" min="1" value="5" />
+      </label>
+      <label>Taraf Signifikansi (&alpha;)
+        <select id="alpha">
+          <option value="0.05" selected>0.05 (5%)</option>
+          <option value="0.01">0.01 (1%)</option>
+        </select>
+      </label>
+      <label>r<sub>tabel</sub>
+        <input type="number" id="rTabel" step="0.0001" min="0" max="1" />
+        <small id="rTabelInfo" class="hint"></small>
+      </label>
+    </div>
+    <div class="row">
+      <button id="btnBuild" class="primary">Buat Tabel Input</button>
+      <button id="btnClear">Bersihkan</button>
+      <label class="file-btn">
+        Import CSV
+        <input type="file" id="fileCsv" accept=".csv,text/csv" hidden />
+      </label>
+      <button id="btnExport">Export Hasil (CSV)</button>
+    </div>
+    <p class="hint">
+      Format CSV: baris pertama header (<code>Peserta,B1,B2,...</code>), kolom pertama nama peserta, sisanya skor tiap butir.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>3. Input Skor Peserta</h2>
+    <div class="table-wrap">
+      <table id="tblInput"></table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>4. Hasil Perhitungan</h2>
+    <div class="row">
+      <button id="btnCalc" class="primary">Hitung r<sub>XY</sub> &amp; Validitas</button>
+    </div>
+
+    <h3>4.1 Rekap Ringkasan Per Butir</h3>
+    <div class="table-wrap">
+      <table id="tblSummary">
+        <thead>
+          <tr>
+            <th>Butir</th>
+            <th>&sum;X</th>
+            <th>&sum;X&sup2;</th>
+            <th>&sum;XY</th>
+            <th>r<sub>hitung</sub></th>
+            <th>r<sub>tabel</sub></th>
+            <th>Keputusan</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="7" id="sumFootInfo" class="muted"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <h3>4.2 Detail Perhitungan Per Butir</h3>
+    <div id="detailWrap"></div>
+  </section>
+
+  <footer class="footer">
+    <p>Dibuat untuk kebutuhan analisis validitas konstruk instrumen penelitian. Perhitungan berjalan sepenuhnya di peramban &mdash; data Anda tidak dikirim ke mana pun.</p>
+  </footer>
+</main>
+
+<script>
+/* Validitas Konstruk - Korelasi Product Moment (Pearson)
+ * Semua perhitungan dilakukan di peramban.
+ */
+
+// Tabel r (Product Moment Pearson), nilai kritis untuk uji dua-arah
+// df = n - 2. Sumber: Tabel r Pearson baku.
+const R_TABLE = {
+  // df : { "0.05": rCrit, "0.01": rCrit }
+  1:  { "0.05": 0.997, "0.01": 1.000 },
+  2:  { "0.05": 0.950, "0.01": 0.990 },
+  3:  { "0.05": 0.878, "0.01": 0.959 },
+  4:  { "0.05": 0.811, "0.01": 0.917 },
+  5:  { "0.05": 0.754, "0.01": 0.874 },
+  6:  { "0.05": 0.707, "0.01": 0.834 },
+  7:  { "0.05": 0.666, "0.01": 0.798 },
+  8:  { "0.05": 0.632, "0.01": 0.765 },
+  9:  { "0.05": 0.602, "0.01": 0.735 },
+  10: { "0.05": 0.576, "0.01": 0.708 },
+  11: { "0.05": 0.553, "0.01": 0.684 },
+  12: { "0.05": 0.532, "0.01": 0.661 },
+  13: { "0.05": 0.514, "0.01": 0.641 },
+  14: { "0.05": 0.497, "0.01": 0.623 },
+  15: { "0.05": 0.482, "0.01": 0.606 },
+  16: { "0.05": 0.468, "0.01": 0.590 },
+  17: { "0.05": 0.456, "0.01": 0.575 },
+  18: { "0.05": 0.444, "0.01": 0.561 },
+  19: { "0.05": 0.433, "0.01": 0.549 },
+  20: { "0.05": 0.423, "0.01": 0.537 },
+  21: { "0.05": 0.413, "0.01": 0.526 },
+  22: { "0.05": 0.404, "0.01": 0.515 },
+  23: { "0.05": 0.396, "0.01": 0.505 },
+  24: { "0.05": 0.388, "0.01": 0.496 },
+  25: { "0.05": 0.381, "0.01": 0.487 },
+  26: { "0.05": 0.374, "0.01": 0.479 },
+  27: { "0.05": 0.367, "0.01": 0.471 },
+  28: { "0.05": 0.361, "0.01": 0.463 },
+  29: { "0.05": 0.355, "0.01": 0.456 },
+  30: { "0.05": 0.349, "0.01": 0.449 },
+  35: { "0.05": 0.325, "0.01": 0.418 },
+  40: { "0.05": 0.304, "0.01": 0.393 },
+  45: { "0.05": 0.288, "0.01": 0.372 },
+  50: { "0.05": 0.273, "0.01": 0.354 },
+  60: { "0.05": 0.250, "0.01": 0.325 },
+  70: { "0.05": 0.232, "0.01": 0.302 },
+  80: { "0.05": 0.217, "0.01": 0.283 },
+  90: { "0.05": 0.205, "0.01": 0.267 },
+  100:{ "0.05": 0.195, "0.01": 0.254 },
+  125:{ "0.05": 0.174, "0.01": 0.228 },
+  150:{ "0.05": 0.159, "0.01": 0.208 },
+  200:{ "0.05": 0.138, "0.01": 0.181 },
+  300:{ "0.05": 0.113, "0.01": 0.148 },
+  400:{ "0.05": 0.098, "0.01": 0.128 },
+  500:{ "0.05": 0.088, "0.01": 0.115 },
+  1000:{ "0.05": 0.062, "0.01": 0.081 }
+};
+
+function lookupRTable(n, alpha) {
+  const df = Math.max(1, n - 2);
+  const keys = Object.keys(R_TABLE).map(Number).sort((a,b)=>a-b);
+  if (df <= keys[0]) return R_TABLE[keys[0]][alpha];
+  if (df >= keys[keys.length-1]) return R_TABLE[keys[keys.length-1]][alpha];
+  // cari df terdekat ke bawah (konservatif: nilai kritis lebih besar)
+  let chosen = keys[0];
+  for (const k of keys) {
+    if (k <= df) chosen = k;
+    else break;
+  }
+  return R_TABLE[chosen][alpha];
+}
+
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+function updateRTabel() {
+  const n = parseInt($("#nPeserta").value, 10);
+  const alpha = $("#alpha").value;
+  if (Number.isFinite(n) && n >= 3) {
+    const r = lookupRTable(n, alpha);
+    $("#rTabel").value = r.toFixed(4);
+    $("#rTabelInfo").textContent = `df = n - 2 = ${n - 2} (α = ${alpha})`;
+  } else {
+    $("#rTabelInfo").textContent = "n minimal 3 untuk df ≥ 1";
+  }
+}
+
+function buildInputTable() {
+  const n = Math.max(2, parseInt($("#nPeserta").value, 10) || 0);
+  const k = Math.max(1, parseInt($("#nButir").value, 10) || 0);
+  $("#nPeserta").value = n;
+  $("#nButir").value = k;
+
+  const tbl = $("#tblInput");
+  tbl.innerHTML = "";
+
+  // header
+  const thead = document.createElement("thead");
+  const trh = document.createElement("tr");
+  trh.appendChild(th("Peserta"));
+  for (let j = 1; j <= k; j++) trh.appendChild(th(`Butir ${j}`));
+  trh.appendChild(th("Skor Total (Y)"));
+  thead.appendChild(trh);
+  tbl.appendChild(thead);
+
+  // body
+  const tbody = document.createElement("tbody");
+  for (let i = 1; i <= n; i++) {
+    const tr = document.createElement("tr");
+    const tdName = document.createElement("td");
+    const inpName = document.createElement("input");
+    inpName.type = "text";
+    inpName.value = `P${i}`;
+    inpName.dataset.role = "name";
+    tdName.appendChild(inpName);
+    tr.appendChild(tdName);
+
+    for (let j = 1; j <= k; j++) {
+      const td = document.createElement("td");
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.step = "any";
+      inp.value = "";
+      inp.dataset.row = i - 1;
+      inp.dataset.col = j - 1;
+      inp.addEventListener("input", () => updateRowTotal(tr));
+      td.appendChild(inp);
+      tr.appendChild(td);
+    }
+    const tdTotal = document.createElement("td");
+    tdTotal.dataset.role = "total";
+    tdTotal.textContent = "0";
+    tr.appendChild(tdTotal);
+
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+
+  // footer: ΣX per butir + ΣY
+  const tfoot = document.createElement("tfoot");
+  const trf = document.createElement("tr");
+  trf.appendChild(th("∑X / ∑Y"));
+  for (let j = 1; j <= k; j++) {
+    const td = document.createElement("td");
+    td.dataset.role = "colsum";
+    td.dataset.col = j - 1;
+    td.textContent = "0";
+    trf.appendChild(td);
+  }
+  const tdSumY = document.createElement("td");
+  tdSumY.dataset.role = "sumY";
+  tdSumY.textContent = "0";
+  trf.appendChild(tdSumY);
+  tfoot.appendChild(trf);
+  tbl.appendChild(tfoot);
+
+  updateAllTotals();
+}
+
+function th(txt) { const e = document.createElement("th"); e.textContent = txt; return e; }
+
+function updateRowTotal(tr) {
+  let s = 0;
+  tr.querySelectorAll('input[type="number"]').forEach(inp => {
+    const v = parseFloat(inp.value);
+    if (Number.isFinite(v)) s += v;
+  });
+  const tdTotal = tr.querySelector('td[data-role="total"]');
+  tdTotal.textContent = fmt(s);
+  updateFooterSums();
+}
+
+function updateAllTotals() {
+  $$("#tblInput tbody tr").forEach(tr => updateRowTotal(tr));
+}
+
+function updateFooterSums() {
+  const k = parseInt($("#nButir").value, 10);
+  const tfoot = $("#tblInput tfoot");
+  if (!tfoot) return;
+  const cols = new Array(k).fill(0);
+  let sumY = 0;
+  $$("#tblInput tbody tr").forEach(tr => {
+    tr.querySelectorAll('input[type="number"]').forEach(inp => {
+      const v = parseFloat(inp.value);
+      if (Number.isFinite(v)) cols[parseInt(inp.dataset.col,10)] += v;
+    });
+    const y = parseFloat(tr.querySelector('td[data-role="total"]').textContent);
+    if (Number.isFinite(y)) sumY += y;
+  });
+  tfoot.querySelectorAll('td[data-role="colsum"]').forEach(td => {
+    td.textContent = fmt(cols[parseInt(td.dataset.col,10)]);
+  });
+  tfoot.querySelector('td[data-role="sumY"]').textContent = fmt(sumY);
+}
+
+function readMatrix() {
+  const rows = [];
+  const names = [];
+  $$("#tblInput tbody tr").forEach(tr => {
+    const name = tr.querySelector('input[data-role="name"]').value || "";
+    names.push(name);
+    const row = [];
+    tr.querySelectorAll('input[type="number"]').forEach(inp => {
+      const v = parseFloat(inp.value);
+      row.push(Number.isFinite(v) ? v : 0);
+    });
+    rows.push(row);
+  });
+  return { names, rows };
+}
+
+function compute() {
+  const { rows } = readMatrix();
+  const n = rows.length;
+  if (n < 2) { alert("Jumlah peserta minimal 2."); return; }
+  const k = rows[0].length;
+  const Y = rows.map(r => r.reduce((a,b) => a+b, 0));
+  const sumY = Y.reduce((a,b) => a+b, 0);
+  const sumY2 = Y.reduce((a,b) => a+b*b, 0);
+
+  const rTabel = parseFloat($("#rTabel").value);
+
+  const results = [];
+  for (let j = 0; j < k; j++) {
+    let sumX = 0, sumX2 = 0, sumXY = 0;
+    for (let i = 0; i < n; i++) {
+      const x = rows[i][j];
+      sumX += x;
+      sumX2 += x*x;
+      sumXY += x * Y[i];
+    }
+    const numerator = n*sumXY - sumX*sumY;
+    const denomPart1 = n*sumX2 - sumX*sumX;
+    const denomPart2 = n*sumY2 - sumY*sumY;
+    const denom = Math.sqrt(denomPart1 * denomPart2);
+    const r = denom === 0 ? NaN : numerator / denom;
+    results.push({
+      butir: j+1, n, sumX, sumX2, sumXY, sumY, sumY2,
+      numerator, denomPart1, denomPart2, denom, r
+    });
+  }
+
+  renderSummary(results, rTabel);
+  renderDetail(results, rTabel);
+}
+
+function renderSummary(results, rTabel) {
+  const tbody = $("#tblSummary tbody");
+  tbody.innerHTML = "";
+  let nValid = 0, nInvalid = 0, nUndef = 0;
+  results.forEach(res => {
+    const tr = document.createElement("tr");
+    const rText = Number.isFinite(res.r) ? res.r.toFixed(4) : "–";
+    let decision = "–", cls = "muted";
+    if (Number.isFinite(res.r) && Number.isFinite(rTabel)) {
+      if (res.r > rTabel) { decision = "Valid"; cls = "valid"; nValid++; }
+      else { decision = "Tidak Valid"; cls = "invalid"; nInvalid++; }
+    } else {
+      nUndef++;
+    }
+    tr.innerHTML = `
+      <td>Butir ${res.butir}</td>
+      <td>${fmt(res.sumX)}</td>
+      <td>${fmt(res.sumX2)}</td>
+      <td>${fmt(res.sumXY)}</td>
+      <td>${rText}</td>
+      <td>${Number.isFinite(rTabel) ? rTabel.toFixed(4) : "–"}</td>
+      <td class="${cls}">${decision}</td>`;
+    tbody.appendChild(tr);
+  });
+  $("#sumFootInfo").textContent =
+    `Ringkasan: ${nValid} butir valid, ${nInvalid} butir tidak valid${nUndef? `, ${nUndef} tidak terdefinisi`:""}.`;
+}
+
+function renderDetail(results, rTabel) {
+  const wrap = $("#detailWrap");
+  wrap.innerHTML = "";
+  results.forEach(res => {
+    const div = document.createElement("div");
+    div.className = "detail-block";
+    const rText = Number.isFinite(res.r) ? res.r.toFixed(6) : "tidak terdefinisi (pembagi 0)";
+    const verdict = (Number.isFinite(res.r) && Number.isFinite(rTabel))
+      ? (res.r > rTabel
+          ? `<span class="valid">Valid</span> (r_hitung ${res.r.toFixed(4)} &gt; r_tabel ${rTabel.toFixed(4)})`
+          : `<span class="invalid">Tidak Valid</span> (r_hitung ${res.r.toFixed(4)} ≤ r_tabel ${rTabel.toFixed(4)})`)
+      : "—";
+    div.innerHTML = `
+      <h4>Butir ${res.butir}</h4>
+      <div class="eq">n = ${res.n}, ∑X = ${fmt(res.sumX)}, ∑Y = ${fmt(res.sumY)}, ∑XY = ${fmt(res.sumXY)}, ∑X² = ${fmt(res.sumX2)}, ∑Y² = ${fmt(res.sumY2)}</div>
+      <div class="eq">Pembilang = n·∑XY − (∑X)(∑Y) = ${res.n}·${fmt(res.sumXY)} − ${fmt(res.sumX)}·${fmt(res.sumY)} = ${fmt(res.numerator)}</div>
+      <div class="eq">n·∑X² − (∑X)² = ${fmt(res.denomPart1)}</div>
+      <div class="eq">n·∑Y² − (∑Y)² = ${fmt(res.denomPart2)}</div>
+      <div class="eq">Penyebut = √(${fmt(res.denomPart1)} × ${fmt(res.denomPart2)}) = ${fmt(res.denom)}</div>
+      <div class="eq"><b>r_XY = ${rText}</b></div>
+      <div>Keputusan: ${verdict}</div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+function fmt(v) {
+  if (!Number.isFinite(v)) return "-";
+  if (Math.abs(v) >= 1e6 || (Math.abs(v) > 0 && Math.abs(v) < 1e-4)) return v.toExponential(4);
+  return (Math.round(v * 10000) / 10000).toString();
+}
+
+/* --- Contoh Data --- */
+function fillSample() {
+  $("#nPeserta").value = 10;
+  $("#nButir").value = 5;
+  updateRTabel();
+  buildInputTable();
+  const data = [
+    [4,3,4,5,4],
+    [3,4,3,4,3],
+    [5,5,4,5,5],
+    [2,3,2,3,2],
+    [4,4,4,4,4],
+    [3,3,4,3,3],
+    [5,4,5,5,5],
+    [4,4,3,4,4],
+    [2,2,3,2,2],
+    [5,5,5,5,4]
+  ];
+  const rows = $$("#tblInput tbody tr");
+  rows.forEach((tr, i) => {
+    const inputs = tr.querySelectorAll('input[type="number"]');
+    inputs.forEach((inp, j) => { inp.value = data[i][j]; });
+    updateRowTotal(tr);
+  });
+}
+
+function clearAll() {
+  $$("#tblInput tbody input[type='number']").forEach(i => i.value = "");
+  updateAllTotals();
+  $("#tblSummary tbody").innerHTML = "";
+  $("#detailWrap").innerHTML = "";
+  $("#sumFootInfo").textContent = "";
+}
+
+/* --- CSV Import --- */
+function parseCsv(text) {
+  const lines = text.replace(/\r\n?/g, "\n").split("\n").filter(l => l.trim().length);
+  return lines.map(line => {
+    // parser sederhana: tangani koma / titik koma
+    const sep = line.includes(";") && !line.includes(",") ? ";" : ",";
+    return line.split(sep).map(s => s.trim());
+  });
+}
+
+function importCsv(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const grid = parseCsv(reader.result);
+    if (grid.length < 2) { alert("CSV kosong atau tidak valid."); return; }
+    const header = grid[0];
+    const body = grid.slice(1);
+    const nBody = body.length;
+    const kBody = header.length - 1;
+    if (kBody < 1) { alert("CSV harus memiliki minimal 1 butir soal setelah kolom Peserta."); return; }
+    $("#nPeserta").value = nBody;
+    $("#nButir").value = kBody;
+    updateRTabel();
+    buildInputTable();
+    const rows = $$("#tblInput tbody tr");
+    body.forEach((r, i) => {
+      if (i >= rows.length) return;
+      const tr = rows[i];
+      tr.querySelector('input[data-role="name"]').value = r[0] ?? `P${i+1}`;
+      const inputs = tr.querySelectorAll('input[type="number"]');
+      for (let j = 0; j < inputs.length; j++) {
+        const raw = r[j+1];
+        const v = parseFloat((raw ?? "").toString().replace(",", "."));
+        inputs[j].value = Number.isFinite(v) ? v : "";
+      }
+      updateRowTotal(tr);
+    });
+  };
+  reader.readAsText(file);
+}
+
+/* --- CSV Export (hasil) --- */
+function exportCsv() {
+  const tbody = $("#tblSummary tbody");
+  if (!tbody.children.length) { alert("Belum ada hasil. Klik \"Hitung r_XY & Validitas\" dahulu."); return; }
+  const header = ["Butir","SumX","SumX2","SumXY","r_hitung","r_tabel","Keputusan"];
+  const lines = [header.join(",")];
+  tbody.querySelectorAll("tr").forEach(tr => {
+    const cells = [...tr.children].map(td => td.textContent.replace(/,/g, ""));
+    lines.push(cells.join(","));
+  });
+  const blob = new Blob([lines.join("\n")], {type: "text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "hasil-validitas.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* --- Wire up --- */
+document.addEventListener("DOMContentLoaded", () => {
+  $("#btnBuild").addEventListener("click", () => { updateRTabel(); buildInputTable(); });
+  $("#btnClear").addEventListener("click", clearAll);
+  $("#btnCalc").addEventListener("click", compute);
+  $("#btnExport").addEventListener("click", exportCsv);
+  $("#nPeserta").addEventListener("change", updateRTabel);
+  $("#alpha").addEventListener("change", updateRTabel);
+  $("#fileCsv").addEventListener("change", (e) => {
+    const f = e.target.files[0];
+    if (f) importCsv(f);
+    e.target.value = "";
+  });
+
+  updateRTabel();
+  buildInputTable();
+});
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

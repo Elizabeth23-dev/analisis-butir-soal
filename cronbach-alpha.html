@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Reliabilitas Cronbach's Alpha</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --danger: #dc2626;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-500: #6b7280;
+            --gray-700: #374151;
+            --gray-900: #111827;
+            --radius: 12px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+            color: var(--gray-900);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        header h1 {
+            font-size: 2rem;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+
+        header p {
+            color: var(--gray-500);
+            font-size: 1rem;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 28px;
+            margin-bottom: 24px;
+        }
+
+        .card h2 {
+            font-size: 1.2rem;
+            color: var(--gray-700);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card h2 .icon {
+            width: 28px;
+            height: 28px;
+            background: var(--primary-light);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .formula-box {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .formula-box .formula {
+            font-size: 1.4rem;
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+            color: var(--gray-900);
+        }
+
+        .formula-box .formula-desc {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            line-height: 1.6;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 6px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid var(--gray-300);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-300);
+        }
+
+        .btn-danger {
+            background: #fef2f2;
+            color: var(--danger);
+            border: 1px solid #fecaca;
+        }
+
+        .btn-danger:hover {
+            background: #fee2e2;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            margin-top: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--gray-200);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        table th {
+            background: var(--primary);
+            color: #fff;
+            padding: 10px 12px;
+            text-align: center;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        table td {
+            padding: 6px 8px;
+            text-align: center;
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        table tr:nth-child(even) {
+            background: var(--gray-50);
+        }
+
+        table tr:hover {
+            background: var(--primary-light);
+        }
+
+        table td input {
+            width: 60px;
+            padding: 6px 8px;
+            border: 1.5px solid var(--gray-300);
+            border-radius: 6px;
+            text-align: center;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        table td input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+        }
+
+        table td.label-cell {
+            font-weight: 600;
+            color: var(--gray-700);
+            white-space: nowrap;
+            text-align: left;
+            padding-left: 14px;
+        }
+
+        .variance-row {
+            background: #fefce8 !important;
+            font-weight: 600;
+        }
+
+        .variance-row td {
+            color: var(--warning);
+        }
+
+        .result-section {
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .result-item {
+            background: var(--gray-50);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            border: 1px solid var(--gray-200);
+        }
+
+        .result-item .label {
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .result-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+
+        .alpha-result {
+            text-align: center;
+            padding: 24px;
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+
+        .alpha-result .alpha-value {
+            font-size: 3rem;
+            font-weight: 800;
+        }
+
+        .alpha-result .alpha-label {
+            font-size: 1rem;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+
+        .alpha-result .interpretation {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .alpha-result.sedikit {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            color: #991b1b;
+        }
+
+        .alpha-result.kurang {
+            background: linear-gradient(135deg, #fff7ed, #ffedd5);
+            color: #9a3412;
+        }
+
+        .alpha-result.cukup {
+            background: linear-gradient(135deg, #fefce8, #fef9c3);
+            color: #854d0e;
+        }
+
+        .alpha-result.reliabel {
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+            color: #166534;
+        }
+
+        .alpha-result.sangat {
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            color: #1e40af;
+        }
+
+        .ref-table {
+            margin-top: 16px;
+        }
+
+        .ref-table table th {
+            background: var(--gray-700);
+        }
+
+        .info-text {
+            font-size: 0.85rem;
+            color: var(--gray-500);
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .steps-list {
+            margin-top: 12px;
+        }
+
+        .steps-list details {
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .steps-list summary {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--gray-700);
+            user-select: none;
+        }
+
+        .steps-list summary:hover {
+            background: var(--gray-100);
+        }
+
+        .steps-list .step-content {
+            padding: 0 16px 16px;
+            font-size: 0.9rem;
+            color: var(--gray-700);
+            line-height: 1.7;
+        }
+
+        .step-content .calc-line {
+            background: #fff;
+            border: 1px solid var(--gray-200);
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin: 6px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+        }
+
+        .example-btn {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+
+        .example-btn:hover {
+            background: #fde68a;
+        }
+
+        .tab-bar {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            background: var(--gray-100);
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .tab-bar button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            font-weight: 600;
+            color: var(--gray-500);
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .tab-bar button.active {
+            background: #fff;
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .paste-area {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border: 2px dashed var(--gray-300);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .paste-area:focus {
+            border-color: var(--primary);
+        }
+
+        .paste-area::placeholder {
+            color: var(--gray-500);
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 12px;
+            }
+
+            header h1 {
+                font-size: 1.4rem;
+            }
+
+            .card {
+                padding: 16px;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .alpha-result .alpha-value {
+                font-size: 2rem;
+            }
+
+            table td input {
+                width: 50px;
+                padding: 4px 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Kalkulator Reliabilitas Cronbach's Alpha</h1>
+            <p>Hitung reliabilitas instrumen penelitian Anda secara otomatis</p>
+        </header>
+
+        <!-- Formula Reference -->
+        <div class="card">
+            <h2><span class="icon">📐</span> Rumus Cronbach's Alpha</h2>
+            <div class="formula-box">
+                <div class="formula">
+                    &alpha; = <sup>n</sup>&frasl;<sub>(n &minus; 1)</sub> &times;
+                    { 1 &minus; <sup>&sum; s<sub>i</sub>&sup2;</sup>&frasl;<sub>s<sub>t</sub>&sup2;</sub> }
+                </div>
+                <div class="formula-desc">
+                    <strong>&alpha;</strong> = indeks reliabilitas &nbsp;|&nbsp;
+                    <strong>n</strong> = banyaknya butir pertanyaan &nbsp;|&nbsp;
+                    <strong>&sum; s<sub>i</sub>&sup2;</strong> = total varians item &nbsp;|&nbsp;
+                    <strong>s<sub>t</sub>&sup2;</strong> = varians skor total
+                </div>
+            </div>
+            <div class="ref-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nilai &alpha;</th>
+                            <th>Interpretasi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>0,00 &le; &alpha; &le; 0,20</td><td>Sedikit reliabel</td></tr>
+                        <tr><td>0,20 &lt; &alpha; &le; 0,40</td><td>Kurang reliabel</td></tr>
+                        <tr><td>0,40 &lt; &alpha; &le; 0,60</td><td>Cukup</td></tr>
+                        <tr><td>0,60 &lt; &alpha; &le; 0,80</td><td>Reliabel</td></tr>
+                        <tr><td>0,80 &lt; &alpha; &le; 1,00</td><td>Sangat reliabel</td></tr>
+                    </tbody>
+                </table>
+                <p class="info-text">Sumber: Imaduddin, Maulani, & Taufik (2022); Sundayana (2018)</p>
+            </div>
+        </div>
+
+        <!-- Data Input -->
+        <div class="card">
+            <h2><span class="icon">📝</span> Input Data</h2>
+
+            <div class="tab-bar">
+                <button class="active" onclick="switchTab('manual')">Input Manual</button>
+                <button onclick="switchTab('paste')">Paste Data</button>
+            </div>
+
+            <!-- Manual Input Tab -->
+            <div id="tab-manual" class="tab-content active">
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="numItems">Jumlah Butir Pertanyaan (n)</label>
+                        <input type="number" id="numItems" min="2" max="100" value="5" placeholder="Min. 2">
+                    </div>
+                    <div class="input-group">
+                        <label for="numRespondents">Jumlah Responden</label>
+                        <input type="number" id="numRespondents" min="2" max="500" value="10" placeholder="Min. 2">
+                    </div>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="generateTable()">Buat Tabel</button>
+                    <button class="btn example-btn" onclick="loadExample()">Contoh Data</button>
+                    <button class="btn btn-danger" onclick="clearTable()">Reset</button>
+                </div>
+                <div id="tableContainer"></div>
+            </div>
+
+            <!-- Paste Data Tab -->
+            <div id="tab-paste" class="tab-content">
+                <p class="info-text" style="margin-bottom: 12px;">
+                    Tempel data dari Excel atau spreadsheet. Setiap baris = 1 responden, kolom dipisahkan Tab atau koma.
+                    Baris pertama bisa berupa header (opsional).
+                </p>
+                <textarea class="paste-area" id="pasteData" placeholder="Contoh (pisahkan dengan Tab atau koma):
+Item1  Item2  Item3  Item4  Item5
+4      5      3      4      5
+3      4      4      3      4
+5      5      5      5      5
+..."></textarea>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="parsePastedData()">Proses Data</button>
+                    <button class="btn btn-danger" onclick="document.getElementById('pasteData').value=''">Bersihkan</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculate Button -->
+        <div class="card" id="calcCard" style="display:none; text-align:center;">
+            <button class="btn btn-success" onclick="calculate()" style="font-size:1.1rem; padding:14px 40px;">
+                Hitung Cronbach's Alpha
+            </button>
+        </div>
+
+        <!-- Results -->
+        <div class="card result-section" id="resultSection">
+            <h2><span class="icon">📊</span> Hasil Perhitungan</h2>
+
+            <div class="result-grid">
+                <div class="result-item">
+                    <div class="label">Jumlah Butir (n)</div>
+                    <div class="value" id="resN">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">Jumlah Responden</div>
+                    <div class="value" id="resR">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">&sum; s<sub>i</sub>&sup2; (Total Varians Item)</div>
+                    <div class="value" id="resSumVar">-</div>
+                </div>
+                <div class="result-item">
+                    <div class="label">s<sub>t</sub>&sup2; (Varians Total)</div>
+                    <div class="value" id="resTotalVar">-</div>
+                </div>
+            </div>
+
+            <div class="alpha-result" id="alphaBox">
+                <div class="alpha-label">Nilai Cronbach's Alpha (&alpha;)</div>
+                <div class="alpha-value" id="alphaValue">-</div>
+                <div class="interpretation" id="alphaInterp">-</div>
+            </div>
+
+            <!-- Detailed Steps -->
+            <div class="steps-list" id="stepsContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let dataTable = [];
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            if (tab === 'manual') {
+                document.querySelector('.tab-bar button:first-child').classList.add('active');
+                document.getElementById('tab-manual').classList.add('active');
+            } else {
+                document.querySelector('.tab-bar button:last-child').classList.add('active');
+                document.getElementById('tab-paste').classList.add('active');
+            }
+        }
+
+        function generateTable() {
+            const n = parseInt(document.getElementById('numItems').value);
+            const r = parseInt(document.getElementById('numRespondents').value);
+
+            if (n < 2 || r < 2) {
+                alert('Jumlah butir dan responden minimal 2.');
+                return;
+            }
+            if (n > 100 || r > 500) {
+                alert('Maksimal 100 butir dan 500 responden.');
+                return;
+            }
+
+            let html = '<div class="table-wrapper"><table><thead><tr>';
+            html += '<th>Responden</th>';
+            for (let j = 1; j <= n; j++) {
+                html += `<th>Item ${j}</th>`;
+            }
+            html += '<th>Total</th></tr></thead><tbody>';
+
+            for (let i = 0; i < r; i++) {
+                html += `<tr><td class="label-cell">R${i + 1}</td>`;
+                for (let j = 0; j < n; j++) {
+                    html += `<td><input type="number" id="cell_${i}_${j}" min="0" step="1" oninput="updateRowTotal(${i}, ${n})"></td>`;
+                }
+                html += `<td id="total_${i}" style="font-weight:600;">0</td></tr>`;
+            }
+
+            html += '</tbody></table></div>';
+
+            document.getElementById('tableContainer').innerHTML = html;
+            document.getElementById('calcCard').style.display = 'block';
+            document.getElementById('resultSection').classList.remove('show');
+        }
+
+        function updateRowTotal(row, n) {
+            let total = 0;
+            for (let j = 0; j < n; j++) {
+                const val = parseFloat(document.getElementById(`cell_${row}_${j}`).value) || 0;
+                total += val;
+            }
+            document.getElementById(`total_${row}`).textContent = total;
+        }
+
+        function loadExample() {
+            document.getElementById('numItems').value = 5;
+            document.getElementById('numRespondents').value = 10;
+            generateTable();
+
+            const exampleData = [
+                [4, 5, 3, 4, 5],
+                [3, 4, 4, 3, 4],
+                [5, 5, 5, 5, 5],
+                [4, 3, 4, 4, 3],
+                [2, 3, 2, 3, 3],
+                [5, 4, 5, 4, 5],
+                [3, 3, 3, 3, 3],
+                [4, 4, 4, 5, 4],
+                [5, 5, 4, 4, 5],
+                [3, 4, 3, 3, 4]
+            ];
+
+            for (let i = 0; i < exampleData.length; i++) {
+                for (let j = 0; j < exampleData[i].length; j++) {
+                    document.getElementById(`cell_${i}_${j}`).value = exampleData[i][j];
+                }
+                updateRowTotal(i, 5);
+            }
+        }
+
+        function parsePastedData() {
+            const raw = document.getElementById('pasteData').value.trim();
+            if (!raw) {
+                alert('Silakan tempel data terlebih dahulu.');
+                return;
+            }
+
+            const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+            const parsed = lines.map(line => {
+                let parts;
+                if (line.includes('\t')) {
+                    parts = line.split('\t');
+                } else if (line.includes(',')) {
+                    parts = line.split(',');
+                } else {
+                    parts = line.split(/\s+/);
+                }
+                return parts.map(p => p.trim());
+            });
+
+            // Check if first row is header (contains non-numeric values)
+            let startRow = 0;
+            const firstRow = parsed[0];
+            const isHeader = firstRow.some(v => isNaN(parseFloat(v)));
+            if (isHeader) startRow = 1;
+
+            const dataRows = parsed.slice(startRow);
+            if (dataRows.length < 2) {
+                alert('Minimal 2 baris data (responden) diperlukan.');
+                return;
+            }
+
+            const n = dataRows[0].length;
+            const r = dataRows.length;
+
+            if (n < 2) {
+                alert('Minimal 2 kolom (butir pertanyaan) diperlukan.');
+                return;
+            }
+
+            // Switch to manual tab and populate
+            switchTab('manual');
+            document.getElementById('numItems').value = n;
+            document.getElementById('numRespondents').value = r;
+            generateTable();
+
+            for (let i = 0; i < r; i++) {
+                for (let j = 0; j < n; j++) {
+                    const val = parseFloat(dataRows[i][j]) || 0;
+                    document.getElementById(`cell_${i}_${j}`).value = val;
+                }
+                updateRowTotal(i, n);
+            }
+        }
+
+        function clearTable() {
+            document.getElementById('tableContainer').innerHTML = '';
+            document.getElementById('calcCard').style.display = 'none';
+            document.getElementById('resultSection').classList.remove('show');
+        }
+
+        function calculate() {
+            const n = parseInt(document.getElementById('numItems').value);
+            const r = parseInt(document.getElementById('numRespondents').value);
+
+            // Collect data
+            const data = [];
+            for (let i = 0; i < r; i++) {
+                const row = [];
+                for (let j = 0; j < n; j++) {
+                    const el = document.getElementById(`cell_${i}_${j}`);
+                    if (!el) {
+                        alert('Tabel belum dibuat. Klik "Buat Tabel" terlebih dahulu.');
+                        return;
+                    }
+                    const val = parseFloat(el.value);
+                    if (isNaN(val)) {
+                        alert(`Data pada Responden ${i + 1}, Item ${j + 1} belum diisi.`);
+                        return;
+                    }
+                    row.push(val);
+                }
+                data.push(row);
+            }
+
+            // Calculate item variances
+            const itemMeans = [];
+            const itemVariances = [];
+            for (let j = 0; j < n; j++) {
+                let sum = 0;
+                for (let i = 0; i < r; i++) {
+                    sum += data[i][j];
+                }
+                const mean = sum / r;
+                itemMeans.push(mean);
+
+                let sumSqDiff = 0;
+                for (let i = 0; i < r; i++) {
+                    sumSqDiff += (data[i][j] - mean) ** 2;
+                }
+                const variance = sumSqDiff / r;
+                itemVariances.push(variance);
+            }
+
+            // Sum of item variances
+            const sumItemVariances = itemVariances.reduce((a, b) => a + b, 0);
+
+            // Calculate total scores per respondent
+            const totalScores = [];
+            for (let i = 0; i < r; i++) {
+                let total = 0;
+                for (let j = 0; j < n; j++) {
+                    total += data[i][j];
+                }
+                totalScores.push(total);
+            }
+
+            // Total variance
+            const totalMean = totalScores.reduce((a, b) => a + b, 0) / r;
+            let totalSumSqDiff = 0;
+            for (let i = 0; i < r; i++) {
+                totalSumSqDiff += (totalScores[i] - totalMean) ** 2;
+            }
+            const totalVariance = totalSumSqDiff / r;
+
+            // Cronbach's Alpha
+            let alpha;
+            if (totalVariance === 0) {
+                alpha = 0;
+            } else {
+                alpha = (n / (n - 1)) * (1 - sumItemVariances / totalVariance);
+            }
+
+            // Display results
+            document.getElementById('resN').textContent = n;
+            document.getElementById('resR').textContent = r;
+            document.getElementById('resSumVar').textContent = sumItemVariances.toFixed(4);
+            document.getElementById('resTotalVar').textContent = totalVariance.toFixed(4);
+            document.getElementById('alphaValue').textContent = alpha.toFixed(4);
+
+            // Interpretation
+            let interp, cls;
+            if (alpha <= 0.20) {
+                interp = 'Sedikit Reliabel';
+                cls = 'sedikit';
+            } else if (alpha <= 0.40) {
+                interp = 'Kurang Reliabel';
+                cls = 'kurang';
+            } else if (alpha <= 0.60) {
+                interp = 'Cukup';
+                cls = 'cukup';
+            } else if (alpha <= 0.80) {
+                interp = 'Reliabel';
+                cls = 'reliabel';
+            } else {
+                interp = 'Sangat Reliabel';
+                cls = 'sangat';
+            }
+
+            const alphaBox = document.getElementById('alphaBox');
+            alphaBox.className = 'alpha-result ' + cls;
+            document.getElementById('alphaInterp').textContent = interp;
+
+            // Build detailed steps
+            let stepsHTML = '<h3 style="margin-top:24px; margin-bottom:12px; color:var(--gray-700);">Langkah Perhitungan</h3>';
+
+            // Step 1: Item Variances
+            stepsHTML += '<details><summary>Langkah 1: Hitung Varians Tiap Item (s<sub>i</sub>&sup2;)</summary><div class="step-content">';
+            stepsHTML += `<p>Rumus varians: s&sup2; = &sum;(X<sub>i</sub> - X&#772;)&sup2; / n</p>`;
+            for (let j = 0; j < n; j++) {
+                stepsHTML += `<div class="calc-line">Item ${j + 1}: rata-rata = ${itemMeans[j].toFixed(4)}, s&sup2; = ${itemVariances[j].toFixed(4)}</div>`;
+            }
+            stepsHTML += `<div class="calc-line"><strong>&sum; s<sub>i</sub>&sup2; = ${sumItemVariances.toFixed(4)}</strong></div>`;
+            stepsHTML += '</div></details>';
+
+            // Step 2: Total Variance
+            stepsHTML += '<details><summary>Langkah 2: Hitung Varians Skor Total (s<sub>t</sub>&sup2;)</summary><div class="step-content">';
+            stepsHTML += `<p>Skor total tiap responden:</p>`;
+            for (let i = 0; i < r; i++) {
+                stepsHTML += `<div class="calc-line">R${i + 1}: ${totalScores[i]}</div>`;
+            }
+            stepsHTML += `<div class="calc-line">Rata-rata skor total = ${totalMean.toFixed(4)}</div>`;
+            stepsHTML += `<div class="calc-line"><strong>s<sub>t</sub>&sup2; = ${totalVariance.toFixed(4)}</strong></div>`;
+            stepsHTML += '</div></details>';
+
+            // Step 3: Cronbach's Alpha
+            stepsHTML += '<details open><summary>Langkah 3: Hitung Cronbach\'s Alpha (&alpha;)</summary><div class="step-content">';
+            stepsHTML += `<div class="calc-line">&alpha; = (n / (n-1)) &times; (1 - &sum;s<sub>i</sub>&sup2; / s<sub>t</sub>&sup2;)</div>`;
+            stepsHTML += `<div class="calc-line">&alpha; = (${n} / ${n - 1}) &times; (1 - ${sumItemVariances.toFixed(4)} / ${totalVariance.toFixed(4)})</div>`;
+            stepsHTML += `<div class="calc-line">&alpha; = ${(n / (n - 1)).toFixed(4)} &times; (1 - ${(totalVariance === 0 ? 0 : sumItemVariances / totalVariance).toFixed(4)})</div>`;
+            stepsHTML += `<div class="calc-line">&alpha; = ${(n / (n - 1)).toFixed(4)} &times; ${(totalVariance === 0 ? 1 : 1 - sumItemVariances / totalVariance).toFixed(4)}</div>`;
+            stepsHTML += `<div class="calc-line"><strong>&alpha; = ${alpha.toFixed(4)}</strong></div>`;
+            stepsHTML += '</div></details>';
+
+            document.getElementById('stepsContainer').innerHTML = stepsHTML;
+
+            // Show result
+            document.getElementById('resultSection').classList.add('show');
+            document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+<script src="nav.js"></script>
+</body>
+</html>
