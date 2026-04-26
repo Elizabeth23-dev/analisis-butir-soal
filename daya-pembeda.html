@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uji Daya Pembeda</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --danger: #dc2626;
+            --info: #0891b2;
+            --bg: #f0f4f8;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), #7c3aed);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border);
+        }
+
+        .card-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--primary);
+        }
+
+        .card-title .icon {
+            font-size: 1.3rem;
+        }
+
+        .formula-box {
+            background: #f8fafc;
+            border: 2px dashed var(--primary);
+            border-radius: 8px;
+            padding: 1.25rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+        .formula-box .formula {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            font-family: 'Cambria Math', 'Times New Roman', serif;
+        }
+
+        .formula-box .legend {
+            font-size: 0.85rem;
+            color: var(--text-light);
+            text-align: left;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .formula-box .legend div {
+            margin-bottom: 0.2rem;
+        }
+
+        .classification-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .classification-table th {
+            background: var(--primary);
+            color: white;
+            padding: 0.6rem 1rem;
+            text-align: center;
+        }
+
+        .classification-table td {
+            padding: 0.5rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .classification-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            font-size: 0.9rem;
+            color: var(--text);
+        }
+
+        .input-group .hint {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-bottom: 0.4rem;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.65rem 0.85rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .row .input-group {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #15803d;
+        }
+
+        .btn-danger {
+            background: #fef2f2;
+            color: var(--danger);
+            border: 1px solid #fecaca;
+        }
+
+        .btn-danger:hover {
+            background: #fee2e2;
+        }
+
+        .btn-outline {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: #eff6ff;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .mode-btn.active {
+            border-color: var(--primary);
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        .mode-btn:hover {
+            border-color: var(--primary);
+        }
+
+        /* Data table for manual input */
+        .data-table-container {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 500px;
+        }
+
+        .data-table th {
+            background: #f1f5f9;
+            padding: 0.6rem 0.5rem;
+            text-align: center;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .data-table td {
+            padding: 0.3rem;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .data-table td.row-label {
+            background: #f8fafc;
+            font-weight: 600;
+            padding: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .data-table input {
+            width: 55px;
+            padding: 0.4rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+
+        .data-table input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+        }
+
+        /* Results */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .results-table th {
+            background: var(--primary);
+            color: white;
+            padding: 0.7rem;
+            text-align: center;
+        }
+
+        .results-table td {
+            padding: 0.6rem 0.7rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .results-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-sangat-jelek { background: #fef2f2; color: #991b1b; }
+        .badge-jelek { background: #fff7ed; color: #9a3412; }
+        .badge-cukup { background: #fefce8; color: #854d0e; }
+        .badge-baik { background: #f0fdf4; color: #166534; }
+        .badge-sangat-baik { background: #ecfdf5; color: #065f46; }
+
+        .badge-layak { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .badge-tidak-layak { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+
+        .summary-box {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .summary-item .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .summary-item .label {
+            font-size: 0.8rem;
+            color: var(--text-light);
+            margin-top: 0.25rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--text-light);
+            font-size: 0.8rem;
+        }
+
+        .alert {
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.4rem;
+            }
+
+            .container {
+                padding: 1rem 0.75rem;
+            }
+
+            .card {
+                padding: 1rem;
+            }
+
+            .btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.85rem;
+            }
+
+            .summary-box {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .data-table input {
+                width: 45px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Uji Daya Pembeda</h1>
+        <p>Analisis daya pembeda butir soal dengan klasifikasi otomatis</p>
+    </div>
+
+    <div class="container">
+        <!-- Rumus & Klasifikasi -->
+        <div class="card">
+            <div class="card-title"><span class="icon">📐</span> Rumus & Klasifikasi</div>
+            <div class="formula-box">
+                <div class="formula">DP = (SA - SB) / IA</div>
+                <div class="legend">
+                    <div><strong>DP</strong> = Daya Pembeda</div>
+                    <div><strong>SA</strong> = Jumlah skor kelompok atas</div>
+                    <div><strong>SB</strong> = Jumlah skor kelompok bawah</div>
+                    <div><strong>IA</strong> = Jumlah skor ideal kelompok atas</div>
+                </div>
+            </div>
+            <table class="classification-table">
+                <thead>
+                    <tr><th>Nilai DP</th><th>Interpretasi</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>DP &lt; 0,00</td><td><span class="badge badge-sangat-jelek">Sangat Jelek</span></td></tr>
+                    <tr><td>0,00 &le; DP &lt; 0,20</td><td><span class="badge badge-jelek">Jelek</span></td></tr>
+                    <tr><td>0,20 &le; DP &lt; 0,40</td><td><span class="badge badge-cukup">Cukup</span></td></tr>
+                    <tr><td>0,40 &le; DP &lt; 0,70</td><td><span class="badge badge-baik">Baik</span></td></tr>
+                    <tr><td>0,70 &le; DP &le; 1,00</td><td><span class="badge badge-sangat-baik">Sangat Baik</span></td></tr>
+                </tbody>
+            </table>
+            <div class="alert alert-info" style="margin-top:1rem;">
+                Instrumen dikatakan <strong>layak</strong> apabila nilai DP berada pada rentang <strong>0,20 &le; DP &le; 1,00</strong> (Fatimah & Alfath, 2019).
+            </div>
+        </div>
+
+        <!-- Mode Input -->
+        <div class="card">
+            <div class="card-title"><span class="icon">📊</span> Input Data</div>
+
+            <div class="mode-selector">
+                <button class="mode-btn active" onclick="setMode('summary')">Input Ringkasan</button>
+                <button class="mode-btn" onclick="setMode('detail')">Input Detail Skor Siswa</button>
+            </div>
+
+            <!-- Summary Mode -->
+            <div id="mode-summary" class="tab-content active">
+                <div class="alert alert-info">
+                    Masukkan langsung nilai SA, SB, dan IA untuk setiap butir soal.
+                </div>
+                <div class="row" style="margin-bottom:1rem;">
+                    <div class="input-group">
+                        <label>Jumlah Butir Soal</label>
+                        <input type="number" id="num-items-summary" value="5" min="1" max="100" onchange="generateSummaryTable()">
+                    </div>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table" id="summary-table">
+                        <thead>
+                            <tr>
+                                <th>No. Soal</th>
+                                <th>SA (Skor Kel. Atas)</th>
+                                <th>SB (Skor Kel. Bawah)</th>
+                                <th>IA (Skor Ideal Kel. Atas)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="calculateSummary()">Hitung Daya Pembeda</button>
+                    <button class="btn btn-danger" onclick="resetSummary()">Reset</button>
+                </div>
+            </div>
+
+            <!-- Detail Mode -->
+            <div id="mode-detail" class="tab-content">
+                <div class="alert alert-info">
+                    Masukkan skor masing-masing siswa per butir soal. Sistem akan otomatis membagi kelompok atas dan bawah (27% teratas & terbawah).
+                </div>
+                <div class="row">
+                    <div class="input-group">
+                        <label>Jumlah Siswa</label>
+                        <input type="number" id="num-students" value="10" min="2" max="200" onchange="generateDetailTable()">
+                    </div>
+                    <div class="input-group">
+                        <label>Jumlah Butir Soal</label>
+                        <input type="number" id="num-items-detail" value="5" min="1" max="100" onchange="generateDetailTable()">
+                    </div>
+                    <div class="input-group">
+                        <label>Skor Maksimal per Soal</label>
+                        <input type="number" id="max-score" value="1" min="1" max="100">
+                    </div>
+                </div>
+                <div class="data-table-container">
+                    <table class="data-table" id="detail-table">
+                        <thead id="detail-thead"></thead>
+                        <tbody id="detail-tbody"></tbody>
+                    </table>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="calculateDetail()">Hitung Daya Pembeda</button>
+                    <button class="btn btn-danger" onclick="resetDetail()">Reset</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hasil -->
+        <div class="card hidden" id="results-card">
+            <div class="card-title"><span class="icon">📋</span> Hasil Analisis Daya Pembeda</div>
+            <div class="data-table-container">
+                <table class="results-table" id="results-table">
+                    <thead>
+                        <tr>
+                            <th>No. Soal</th>
+                            <th>SA</th>
+                            <th>SB</th>
+                            <th>IA</th>
+                            <th>DP</th>
+                            <th>Interpretasi</th>
+                            <th>Kelayakan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-tbody"></tbody>
+                </table>
+            </div>
+
+            <div class="summary-box" id="summary-stats"></div>
+
+            <div class="btn-group" style="margin-top:1.5rem;">
+                <button class="btn btn-success" onclick="exportCSV()">Export CSV</button>
+                <button class="btn btn-outline" onclick="window.print()">Cetak / PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Referensi: Sundayana (2018), Fatimah & Alfath (2019) &bull; Uji Daya Pembeda Online
+    </div>
+
+    <script>
+        let currentMode = 'summary';
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+
+            if (mode === 'summary') {
+                document.querySelectorAll('.mode-btn')[0].classList.add('active');
+                document.getElementById('mode-summary').classList.add('active');
+            } else {
+                document.querySelectorAll('.mode-btn')[1].classList.add('active');
+                document.getElementById('mode-detail').classList.add('active');
+            }
+        }
+
+        // ============ Summary Mode ============
+        function generateSummaryTable() {
+            const n = parseInt(document.getElementById('num-items-summary').value) || 5;
+            const tbody = document.getElementById('summary-tbody');
+            tbody.innerHTML = '';
+
+            for (let i = 1; i <= n; i++) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="row-label">Soal ${i}</td>
+                    <td><input type="number" id="sa-${i}" min="0" step="any" value=""></td>
+                    <td><input type="number" id="sb-${i}" min="0" step="any" value=""></td>
+                    <td><input type="number" id="ia-${i}" min="0.01" step="any" value=""></td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function calculateSummary() {
+            const n = parseInt(document.getElementById('num-items-summary').value) || 5;
+            const results = [];
+
+            for (let i = 1; i <= n; i++) {
+                const sa = parseFloat(document.getElementById(`sa-${i}`).value);
+                const sb = parseFloat(document.getElementById(`sb-${i}`).value);
+                const ia = parseFloat(document.getElementById(`ia-${i}`).value);
+
+                if (isNaN(sa) || isNaN(sb) || isNaN(ia) || ia === 0) {
+                    alert(`Data soal ${i} belum lengkap atau IA tidak boleh 0.`);
+                    return;
+                }
+
+                const dp = (sa - sb) / ia;
+                results.push({ no: i, sa, sb, ia, dp });
+            }
+
+            displayResults(results);
+        }
+
+        function resetSummary() {
+            generateSummaryTable();
+            document.getElementById('results-card').classList.add('hidden');
+        }
+
+        // ============ Detail Mode ============
+        function generateDetailTable() {
+            const numStudents = parseInt(document.getElementById('num-students').value) || 10;
+            const numItems = parseInt(document.getElementById('num-items-detail').value) || 5;
+
+            const thead = document.getElementById('detail-thead');
+            const tbody = document.getElementById('detail-tbody');
+
+            // Header
+            let headerHtml = '<tr><th>Siswa</th>';
+            for (let j = 1; j <= numItems; j++) {
+                headerHtml += `<th>Soal ${j}</th>`;
+            }
+            headerHtml += '<th>Total</th></tr>';
+            thead.innerHTML = headerHtml;
+
+            // Body
+            tbody.innerHTML = '';
+            for (let i = 1; i <= numStudents; i++) {
+                let rowHtml = `<tr><td class="row-label">Siswa ${i}</td>`;
+                for (let j = 1; j <= numItems; j++) {
+                    rowHtml += `<td><input type="number" class="score-input" data-student="${i}" data-item="${j}" min="0" step="any" value="" onchange="updateTotal(${i})"></td>`;
+                }
+                rowHtml += `<td id="total-${i}" style="font-weight:600;">0</td></tr>`;
+                tbody.appendChild(createRowFromHtml(rowHtml));
+            }
+        }
+
+        function createRowFromHtml(html) {
+            const template = document.createElement('template');
+            template.innerHTML = html.trim();
+            return template.content.firstChild;
+        }
+
+        function updateTotal(studentNum) {
+            const inputs = document.querySelectorAll(`input[data-student="${studentNum}"]`);
+            let total = 0;
+            inputs.forEach(inp => {
+                const val = parseFloat(inp.value);
+                if (!isNaN(val)) total += val;
+            });
+            document.getElementById(`total-${studentNum}`).textContent = total.toFixed(2);
+        }
+
+        function calculateDetail() {
+            const numStudents = parseInt(document.getElementById('num-students').value) || 10;
+            const numItems = parseInt(document.getElementById('num-items-detail').value) || 5;
+            const maxScore = parseFloat(document.getElementById('max-score').value) || 1;
+
+            // Collect all scores
+            const students = [];
+            for (let i = 1; i <= numStudents; i++) {
+                const scores = [];
+                let total = 0;
+                for (let j = 1; j <= numItems; j++) {
+                    const input = document.querySelector(`input[data-student="${i}"][data-item="${j}"]`);
+                    const val = parseFloat(input.value) || 0;
+                    scores.push(val);
+                    total += val;
+                }
+                students.push({ id: i, scores, total });
+            }
+
+            // Sort by total descending
+            students.sort((a, b) => b.total - a.total);
+
+            // 27% upper and lower groups
+            const groupSize = Math.max(1, Math.ceil(numStudents * 0.27));
+            const upperGroup = students.slice(0, groupSize);
+            const lowerGroup = students.slice(numStudents - groupSize);
+
+            const results = [];
+            for (let j = 0; j < numItems; j++) {
+                let sa = 0, sb = 0;
+                upperGroup.forEach(s => { sa += s.scores[j]; });
+                lowerGroup.forEach(s => { sb += s.scores[j]; });
+                const ia = groupSize * maxScore;
+
+                const dp = ia > 0 ? (sa - sb) / ia : 0;
+                results.push({ no: j + 1, sa, sb, ia, dp });
+            }
+
+            displayResults(results);
+        }
+
+        function resetDetail() {
+            generateDetailTable();
+            document.getElementById('results-card').classList.add('hidden');
+        }
+
+        // ============ Results ============
+        function classifyDP(dp) {
+            if (dp < 0) return { label: 'Sangat Jelek', badge: 'badge-sangat-jelek' };
+            if (dp < 0.20) return { label: 'Jelek', badge: 'badge-jelek' };
+            if (dp < 0.40) return { label: 'Cukup', badge: 'badge-cukup' };
+            if (dp < 0.70) return { label: 'Baik', badge: 'badge-baik' };
+            return { label: 'Sangat Baik', badge: 'badge-sangat-baik' };
+        }
+
+        function isLayak(dp) {
+            return dp >= 0.20 && dp <= 1.00;
+        }
+
+        function displayResults(results) {
+            const tbody = document.getElementById('results-tbody');
+            tbody.innerHTML = '';
+
+            let counts = { 'Sangat Jelek': 0, 'Jelek': 0, 'Cukup': 0, 'Baik': 0, 'Sangat Baik': 0 };
+            let layakCount = 0;
+
+            results.forEach(r => {
+                const cls = classifyDP(r.dp);
+                const layak = isLayak(r.dp);
+                counts[cls.label]++;
+                if (layak) layakCount++;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${r.no}</strong></td>
+                    <td>${formatNum(r.sa)}</td>
+                    <td>${formatNum(r.sb)}</td>
+                    <td>${formatNum(r.ia)}</td>
+                    <td><strong>${r.dp.toFixed(4)}</strong></td>
+                    <td><span class="badge ${cls.badge}">${cls.label}</span></td>
+                    <td><span class="badge ${layak ? 'badge-layak' : 'badge-tidak-layak'}">${layak ? 'Layak' : 'Tidak Layak'}</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Summary stats
+            const statsHtml = `
+                <div class="summary-item">
+                    <div class="value" style="color:#991b1b;">${counts['Sangat Jelek']}</div>
+                    <div class="label">Sangat Jelek</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value" style="color:#9a3412;">${counts['Jelek']}</div>
+                    <div class="label">Jelek</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value" style="color:#854d0e;">${counts['Cukup']}</div>
+                    <div class="label">Cukup</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value" style="color:#166534;">${counts['Baik']}</div>
+                    <div class="label">Baik</div>
+                </div>
+                <div class="summary-item">
+                    <div class="value" style="color:#065f46;">${counts['Sangat Baik']}</div>
+                    <div class="label">Sangat Baik</div>
+                </div>
+                <div class="summary-item" style="border:2px solid var(--primary);">
+                    <div class="value" style="color:var(--primary);">${layakCount}/${results.length}</div>
+                    <div class="label">Soal Layak</div>
+                </div>
+            `;
+            document.getElementById('summary-stats').innerHTML = statsHtml;
+            document.getElementById('results-card').classList.remove('hidden');
+            document.getElementById('results-card').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function formatNum(val) {
+            return Number.isInteger(val) ? val : val.toFixed(2);
+        }
+
+        // ============ Export ============
+        function exportCSV() {
+            const table = document.getElementById('results-table');
+            const rows = table.querySelectorAll('tr');
+            let csv = '';
+
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('th, td');
+                const rowData = [];
+                cells.forEach(cell => {
+                    let text = cell.innerText.replace(/"/g, '""');
+                    rowData.push(`"${text}"`);
+                });
+                csv += rowData.join(',') + '\n';
+            });
+
+            const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'hasil_daya_pembeda.csv';
+            link.click();
+        }
+
+        // ============ Init ============
+        generateSummaryTable();
+        generateDetailTable();
+    </script>
+<script src="nav.js"></script>
+</body>
+</html>
