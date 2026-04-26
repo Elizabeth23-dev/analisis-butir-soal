@@ -11,7 +11,6 @@
   }
 
   function showGate() {
-    document.body.style.visibility = 'hidden';
 
     var overlay = document.createElement('div');
     overlay.id = 'auth-overlay';
@@ -73,7 +72,6 @@
         if (hash === TOKEN_HASH) {
           sessionStorage.setItem('auth_ok', '1');
           overlay.remove();
-          document.body.style.visibility = '';
           document.body.style.overflow = '';
         } else {
           err.textContent = 'Token salah. Silakan coba lagi.';
