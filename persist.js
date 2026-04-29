@@ -53,12 +53,35 @@
     return out;
   }
 
+  // Kunci stabil dengan disambiguasi posisi: jika beberapa elemen
+  // menghasilkan keyFor() yang sama (mis. hanya punya data-role yang
+  // sama), tambahkan suffix '#1', '#2', dst. sesuai urutan DOM.
+  // snapshot() dan applyValues() memakai iterasi yang sama agar key
+  // tetap konsisten antara save & restore.
+  function enumerateKeys() {
+    var inputs = getInputs();
+    var seen = Object.create(null);
+    var keys = new Array(inputs.length);
+    for (var i = 0; i < inputs.length; i++) {
+      var base = keyFor(inputs[i]);
+      if (!base) { keys[i] = null; continue; }
+      if (base in seen) {
+        seen[base]++;
+        keys[i] = base + '#' + seen[base];
+      } else {
+        seen[base] = 0;
+        keys[i] = base;
+      }
+    }
+    return { inputs: inputs, keys: keys };
+  }
+
   function snapshot() {
     var data = { v: 1, fields: {}, activeButtons: activeButtonGroups() };
-    var inputs = getInputs();
-    for (var i = 0; i < inputs.length; i++) {
-      var el = inputs[i];
-      var k = keyFor(el);
+    var pair = enumerateKeys();
+    for (var i = 0; i < pair.inputs.length; i++) {
+      var el = pair.inputs[i];
+      var k = pair.keys[i];
       if (!k) continue;
       if (el.type === 'file' || el.type === 'password') continue;
       if (el.type === 'checkbox' || el.type === 'radio') {
@@ -91,10 +114,10 @@
 
   function applyValues(data) {
     if (!data || !data.fields) return;
-    var inputs = getInputs();
-    for (var i = 0; i < inputs.length; i++) {
-      var el = inputs[i];
-      var k = keyFor(el);
+    var pair = enumerateKeys();
+    for (var i = 0; i < pair.inputs.length; i++) {
+      var el = pair.inputs[i];
+      var k = pair.keys[i];
       if (!k || !(k in data.fields)) continue;
       var f = data.fields[k];
       if ('c' in f) {

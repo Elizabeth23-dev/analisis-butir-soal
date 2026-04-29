@@ -412,6 +412,7 @@ function buildInputTable() {
     inpName.type = "text";
     inpName.value = `P${i}`;
     inpName.dataset.role = "name";
+    inpName.dataset.row = i - 1;
     tdName.appendChild(inpName);
     tr.appendChild(tdName);
 
