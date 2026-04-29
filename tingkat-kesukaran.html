@@ -766,6 +766,10 @@
             <div id="resultSummaryCards" class="result-summary"></div>
 
             <div id="resultDetailContainer"></div>
+
+            <div class="btn-group" style="margin-top:1.25rem;">
+                <button class="btn btn-success" onclick="exportXLSX()">Ekspor Excel (.xlsx)</button>
+            </div>
         </div>
     </div>
 
@@ -778,6 +782,9 @@
 <script>
     let currentMode = 'manual';
     let directSoalCount = 0;
+    let lastResults = null;
+    let lastGroupSize = null;
+    let lastTotalPeserta = null;
 
     function setMode(mode) {
         currentMode = mode;
@@ -1002,6 +1009,9 @@
     }
 
     function displayResults(results, groupSize, totalPeserta) {
+        lastResults = results;
+        lastGroupSize = groupSize;
+        lastTotalPeserta = totalPeserta;
         const section = document.getElementById('resultSection');
         section.classList.add('visible');
 
@@ -1105,12 +1115,92 @@
         section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    function gatherManualInput() {
+        const rows = [];
+        const tbl = document.querySelector('#scoreTableContainer table');
+        if (!tbl) return rows;
+        tbl.querySelectorAll('tr').forEach(tr => {
+            const r = [];
+            tr.querySelectorAll('th, td').forEach(c => {
+                const inp = c.querySelector('input');
+                let v;
+                if (inp) {
+                    v = inp.value;
+                } else {
+                    v = c.innerText.trim();
+                }
+                if (v === '') { r.push(null); return; }
+                const n = Number(v.replace(',', '.'));
+                r.push(Number.isFinite(n) ? n : v);
+            });
+            rows.push(r);
+        });
+        return rows;
+    }
+
+    function gatherDirectInput() {
+        const rows = [['Soal', 'SA', 'SB', 'IA', 'IB']];
+        const num = (el) => {
+            if (!el) return null;
+            const v = el.value;
+            if (v === '') return null;
+            const n = Number(v);
+            return Number.isFinite(n) ? n : v;
+        };
+        document.querySelectorAll('#directSoalContainer .soal-panel').forEach((panel, i) => {
+            const sa = panel.querySelector('input[id^="direct_SA_"]');
+            const sb = panel.querySelector('input[id^="direct_SB_"]');
+            const ia = panel.querySelector('input[id^="direct_IA_"]');
+            const ib = panel.querySelector('input[id^="direct_IB_"]');
+            rows.push([`Soal ${i + 1}`, num(sa), num(sb), num(ia), num(ib)]);
+        });
+        return rows;
+    }
+
+    function exportXLSX() {
+        if (!lastResults || !lastResults.length) {
+            alert('Hitung Tingkat Kesukaran terlebih dahulu sebelum mengekspor.');
+            return;
+        }
+        const sheets = [];
+        const hasilRows = [['Butir Soal', 'SA', 'SB', 'IA', 'IB', 'TK', 'Interpretasi']];
+        lastResults.forEach(r => {
+            hasilRows.push([
+                `Soal ${r.soal}`, r.SA, r.SB, r.IA, r.IB,
+                Number(r.TK.toFixed(4)), r.interpretasi.label
+            ]);
+        });
+        // Ringkasan
+        const counts = { 'Sangat Sukar': 0, 'Sukar': 0, 'Sedang': 0, 'Mudah': 0, 'Sangat Mudah': 0 };
+        lastResults.forEach(r => { if (counts[r.interpretasi.label] !== undefined) counts[r.interpretasi.label]++; });
+        const avgTK = lastResults.reduce((s, r) => s + r.TK, 0) / lastResults.length;
+        hasilRows.push([]);
+        hasilRows.push(['Rata-rata TK', Number(avgTK.toFixed(4))]);
+        if (lastTotalPeserta) {
+            hasilRows.push(['Jumlah Peserta', lastTotalPeserta]);
+            hasilRows.push(['Ukuran Kelompok Atas/Bawah', lastGroupSize]);
+        }
+        ['Sangat Sukar', 'Sukar', 'Sedang', 'Mudah', 'Sangat Mudah'].forEach(k => {
+            hasilRows.push([k, counts[k]]);
+        });
+        sheets.push({ name: 'Hasil', rows: hasilRows });
+
+        if (currentMode === 'manual') {
+            sheets.push({ name: 'Input Manual', rows: gatherManualInput() });
+        } else {
+            sheets.push({ name: 'Input Langsung', rows: gatherDirectInput() });
+        }
+        window.absExportXLSX('hasil_tingkat_kesukaran.xlsx', sheets);
+    }
+
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
         generateScoreTable();
     });
 </script>
 
+<script src="xlsx.mini.min.js"></script>
+<script src="export-xlsx.js"></script>
 <script src="persist.js"></script>
 <script src="nav.js"></script>
 </body>

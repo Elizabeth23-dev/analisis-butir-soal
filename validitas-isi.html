@@ -293,6 +293,9 @@
           <li>V &gt; 0.8 &nbsp;&rarr; validitas tinggi</li>
         </ul>
       </details>
+      <div class="actions" style="margin-top:14px">
+        <button id="exportXlsxBtn" class="btn btn-primary">Ekspor Excel (.xlsx)</button>
+      </div>
     </section>
   </main>
 
@@ -493,10 +496,73 @@
     calculate();
   }
 
+  function exportXlsx() {
+    calculate();
+    const { n, items, lo, c, itemNames, scores } = state;
+    // Sheet Hasil: per butir
+    const hasilHeader = ['Butir', 'Nama Butir'];
+    for (let j = 1; j <= n; j++) hasilHeader.push('V' + j);
+    hasilHeader.push('\u03A3s', 'V', 'Kategori');
+    const hasilRows = [hasilHeader];
+    const denom = n * (c - lo);
+    const vList = [];
+    for (let i = 0; i < items; i++) {
+      const row = ['Butir ' + (i + 1), itemNames[i] || ''];
+      const arr = scores[i] || [];
+      let sumS = 0;
+      let valid = true;
+      for (let j = 0; j < n; j++) {
+        const r = arr[j];
+        row.push(r == null || isNaN(r) ? null : r);
+        if (r == null || isNaN(r)) { valid = false; }
+        else { sumS += (r - lo); }
+      }
+      if (valid && denom > 0) {
+        const v = sumS / denom;
+        vList.push(v);
+        row.push(sumS, Number(v.toFixed(4)), categorize(v).label);
+      } else {
+        row.push(null, null, '—');
+      }
+      hasilRows.push(row);
+    }
+    // Ringkasan
+    hasilRows.push([]);
+    if (vList.length) {
+      const avg = vList.reduce((a, b) => a + b, 0) / vList.length;
+      hasilRows.push(['V rata-rata instrumen', '', '', Number(avg.toFixed(4)), categorize(avg).label]);
+      hasilRows.push(['V minimum', '', '', Number(Math.min(...vList).toFixed(4))]);
+      hasilRows.push(['V maksimum', '', '', Number(Math.max(...vList).toFixed(4))]);
+    }
+    hasilRows.push([]);
+    hasilRows.push(['Parameter', 'Nilai']);
+    hasilRows.push(['Jumlah Validator (n)', n]);
+    hasilRows.push(['Jumlah Butir', items]);
+    hasilRows.push(['Skor terendah (lo)', lo]);
+    hasilRows.push(['Skor tertinggi (c)', c]);
+
+    // Sheet Input: tabel skor mentah
+    const inputHeader = ['Butir', 'Nama Butir'];
+    for (let j = 1; j <= n; j++) inputHeader.push('Validator ' + j);
+    const inputRows = [inputHeader];
+    for (let i = 0; i < items; i++) {
+      const row = ['Butir ' + (i + 1), itemNames[i] || ''];
+      const arr = scores[i] || [];
+      for (let j = 0; j < n; j++) row.push(arr[j] == null || isNaN(arr[j]) ? null : arr[j]);
+      inputRows.push(row);
+    }
+
+    window.absExportXLSX('hasil_validitas_isi.xlsx', [
+      { name: 'Hasil', rows: hasilRows },
+      { name: 'Input', rows: inputRows }
+    ]);
+  }
+
   $("buildBtn").addEventListener("click", () => buildTable(true));
   $("calcBtn").addEventListener("click", calculate);
   $("fillBtn").addEventListener("click", fillMax);
   $("clearBtn").addEventListener("click", clearAll);
+  $("exportXlsxBtn").addEventListener("click", exportXlsx);
   ["lo", "c", "numValidators", "numItems"].forEach((id) => {
     $(id).addEventListener("change", () => buildTable(true));
   });
@@ -507,6 +573,8 @@
   buildTable(false);
 })();
 </script>
+<script src="xlsx.mini.min.js"></script>
+<script src="export-xlsx.js"></script>
 <script src="persist.js"></script>
 <script src="nav.js"></script>
 </body>

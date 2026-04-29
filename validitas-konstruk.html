@@ -248,6 +248,7 @@ table input[type=text] {
         <input type="file" id="fileCsv" accept=".csv,text/csv" hidden />
       </label>
       <button id="btnExport">Export Hasil (CSV)</button>
+      <button id="btnExportXlsx">Ekspor Excel (.xlsx)</button>
     </div>
     <p class="hint">
       Format CSV: baris pertama header (<code>Peserta,B1,B2,...</code>), kolom pertama nama peserta, sisanya skor tiap butir.
@@ -544,6 +545,7 @@ function compute() {
 
   renderSummary(results, rTabel);
   renderDetail(results, rTabel);
+  window.__lastVKResults = { results: results, rTabel: rTabel, names: readMatrix().names, rows: rows };
 }
 
 function renderSummary(results, rTabel) {
@@ -700,12 +702,73 @@ function exportCsv() {
   URL.revokeObjectURL(url);
 }
 
+function exportXlsx() {
+  const last = window.__lastVKResults;
+  if (!last) { alert("Belum ada hasil. Klik \"Hitung r_XY & Validitas\" dahulu."); return; }
+  const { results, rTabel, names, rows } = last;
+  const k = results.length;
+
+  // Sheet Input: Peserta + B1..Bk + Total
+  const inputRows = [["Peserta"]];
+  for (let j = 1; j <= k; j++) inputRows[0].push("B" + j);
+  inputRows[0].push("Total (Y)");
+  for (let i = 0; i < rows.length; i++) {
+    const total = rows[i].reduce((a, b) => a + b, 0);
+    inputRows.push([names[i] || ("P" + (i + 1)), ...rows[i], total]);
+  }
+
+  // Sheet Hasil: ringkasan per butir
+  const hasilRows = [["Butir", "\u03A3X", "\u03A3X\u00B2", "\u03A3XY", "r_hitung", "r_tabel", "Keputusan"]];
+  let nValid = 0, nInvalid = 0, nUndef = 0;
+  results.forEach(res => {
+    let decision;
+    if (Number.isFinite(res.r) && Number.isFinite(rTabel)) {
+      if (res.r > rTabel) { decision = "Valid"; nValid++; } else { decision = "Tidak Valid"; nInvalid++; }
+    } else { decision = "Tidak Terdefinisi"; nUndef++; }
+    hasilRows.push([
+      "Butir " + res.butir,
+      Number.isFinite(res.sumX) ? res.sumX : null,
+      Number.isFinite(res.sumX2) ? res.sumX2 : null,
+      Number.isFinite(res.sumXY) ? res.sumXY : null,
+      Number.isFinite(res.r) ? Number(res.r.toFixed(6)) : null,
+      Number.isFinite(rTabel) ? rTabel : null,
+      decision
+    ]);
+  });
+  hasilRows.push([]);
+  hasilRows.push(["Ringkasan", "Valid", nValid]);
+  hasilRows.push(["", "Tidak Valid", nInvalid]);
+  if (nUndef) hasilRows.push(["", "Tidak Terdefinisi", nUndef]);
+
+  // Sheet Detail: kolom intermediate
+  const detailRows = [[
+    "Butir", "n", "\u03A3X", "\u03A3X\u00B2", "\u03A3Y", "\u03A3Y\u00B2", "\u03A3XY",
+    "Pembilang", "n\u00B7\u03A3X\u00B2 - (\u03A3X)\u00B2", "n\u00B7\u03A3Y\u00B2 - (\u03A3Y)\u00B2", "Penyebut", "r_XY"
+  ]];
+  results.forEach(res => {
+    detailRows.push([
+      "Butir " + res.butir, res.n,
+      res.sumX, res.sumX2, res.sumY, res.sumY2, res.sumXY,
+      res.numerator, res.denomPart1, res.denomPart2,
+      Number.isFinite(res.denom) ? Number(res.denom.toFixed(6)) : null,
+      Number.isFinite(res.r) ? Number(res.r.toFixed(6)) : null
+    ]);
+  });
+
+  window.absExportXLSX("hasil_validitas_konstruk.xlsx", [
+    { name: "Hasil", rows: hasilRows },
+    { name: "Input", rows: inputRows },
+    { name: "Detail", rows: detailRows }
+  ]);
+}
+
 /* --- Wire up --- */
 document.addEventListener("DOMContentLoaded", () => {
   $("#btnBuild").addEventListener("click", () => { updateRTabel(); buildInputTable(); });
   $("#btnClear").addEventListener("click", clearAll);
   $("#btnCalc").addEventListener("click", compute);
   $("#btnExport").addEventListener("click", exportCsv);
+  $("#btnExportXlsx").addEventListener("click", exportXlsx);
   $("#nPeserta").addEventListener("change", updateRTabel);
   $("#alpha").addEventListener("change", updateRTabel);
   $("#fileCsv").addEventListener("change", (e) => {
@@ -718,6 +781,8 @@ document.addEventListener("DOMContentLoaded", () => {
   buildInputTable();
 });
 </script>
+<script src="xlsx.mini.min.js"></script>
+<script src="export-xlsx.js"></script>
 <script src="persist.js"></script>
 <script src="nav.js"></script>
 </body>
