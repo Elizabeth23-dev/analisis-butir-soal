@@ -412,6 +412,7 @@ function buildInputTable() {
     inpName.type = "text";
     inpName.value = `P${i}`;
     inpName.dataset.role = "name";
+    inpName.dataset.row = i - 1;
     tdName.appendChild(inpName);
     tr.appendChild(tdName);
 
@@ -717,6 +718,7 @@ document.addEventListener("DOMContentLoaded", () => {
   buildInputTable();
 });
 </script>
+<script src="persist.js"></script>
 <script src="nav.js"></script>
 </body>
 </html>
