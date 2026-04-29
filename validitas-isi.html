@@ -497,9 +497,12 @@
   $("calcBtn").addEventListener("click", calculate);
   $("fillBtn").addEventListener("click", fillMax);
   $("clearBtn").addEventListener("click", clearAll);
-  ["lo", "c"].forEach((id) => {
+  ["lo", "c", "numValidators", "numItems"].forEach((id) => {
     $(id).addEventListener("change", () => buildTable(true));
   });
+
+  // Ekspos ke window agar persist.js dapat memanggil ulang setelah restore
+  window.buildTable = buildTable;
 
   buildTable(false);
 })();
