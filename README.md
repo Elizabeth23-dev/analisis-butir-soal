@@ -11,6 +11,7 @@ Kumpulan kalkulator statistik untuk analisis instrumen penelitian pendidikan. Se
 | 3 | **Reliabilitas Cronbach's Alpha** | α = n/(n-1) × {1 - Σsi²/st²} | Imaduddin, Maulani, & Taufik (2022); Sundayana (2018) |
 | 4 | **Validitas Konstruk (Pearson)** | r_XY = [nΣXY - (ΣX)(ΣY)] / √[...] | Korelasi Product Moment |
 | 5 | **Validitas Isi (Aiken's V)** | V = ΣS / [n(c-1)] | Aiken (1985) |
+| 6 | **Cek E-Wallet** | API Mochi | Verifikasi akun e-wallet via API |
 
 ## Cara Pakai
 
@@ -29,6 +30,7 @@ Kumpulan kalkulator statistik untuk analisis instrumen penelitian pendidikan. Se
 ├── cronbach-alpha.html        # Kalkulator Cronbach's Alpha
 ├── validitas-konstruk.html    # Kalkulator Validitas Konstruk
 ├── validitas-isi.html         # Kalkulator Validitas Isi (Aiken's V)
+├── cek-ewallet.html           # Cek E-Wallet via API Mochi
 └── README.md
 ```
 

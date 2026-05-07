@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cek E-Wallet - Verifikasi Akun E-Wallet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #ffffff;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --accent: #2563eb;
+    --accent-2: #1d4ed8;
+    --good: #16a34a;
+    --warn: #d97706;
+    --bad: #dc2626;
+    --row-alt: #f8fafc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 60%);
+    color: #0f172a;
+    min-height: 100vh;
+  }
+  header {
+    padding: 28px 16px 12px;
+    text-align: center;
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+    color: var(--bg);
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  main {
+    max-width: 700px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 6px 20px -10px rgba(15, 23, 42, 0.15);
+    margin-bottom: 18px;
+  }
+  .card h2 {
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: var(--bg);
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--bg);
+    margin-bottom: 6px;
+  }
+  .form-group label .optional {
+    font-weight: 400;
+    color: var(--muted);
+    font-style: italic;
+    font-size: 12px;
+  }
+  .form-group select,
+  .form-group input[type="text"],
+  .form-group input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+    color: #0f172a;
+    font-family: inherit;
+  }
+  .form-group select:focus,
+  .form-group input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  }
+  .btn {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: transform .05s ease, background .15s ease;
+    width: 100%;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-2); }
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  .btn:active { transform: translateY(1px); }
+
+  #result-section {
+    display: none;
+  }
+
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .result-header .status-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .result-header .status-icon.success {
+    background: #dcfce7;
+    color: var(--good);
+  }
+  .result-header .status-icon.error {
+    background: #fee2e2;
+    color: var(--bad);
+  }
+  .result-header .status-icon.warn {
+    background: #fef3c7;
+    color: var(--warn);
+  }
+
+  .result-item {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  .result-item h4 {
+    font-size: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .result-item .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-success { background: #dcfce7; color: var(--good); }
+  .badge-error { background: #fee2e2; color: var(--bad); }
+  .badge-warn { background: #fef3c7; color: var(--warn); }
+
+  .result-detail {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 6px 12px;
+    font-size: 13px;
+  }
+  .result-detail dt {
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .result-detail dd {
+    color: var(--bg);
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  .raw-response {
+    margin-top: 12px;
+  }
+  .raw-response summary {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .raw-response pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 14px;
+    font-size: 12px;
+    overflow-x: auto;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 24px;
+    color: var(--muted);
+  }
+  .loading .spinner {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .info-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-size: 13px;
+    color: #1e40af;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 16px;
+  }
+
+  @media (max-width: 640px) {
+    header h1 { font-size: 20px; }
+    main { padding: 12px; }
+    .card { padding: 16px; }
+    .result-detail {
+      grid-template-columns: 1fr;
+    }
+    .result-detail dt {
+      margin-top: 6px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<script src="nav.js"></script>
+
+<header>
+  <h1>Cek E-Wallet</h1>
+  <p>Verifikasi data akun e-wallet via API Mochi</p>
+</header>
+
+<main>
+  <div class="card">
+    <h2>&#128179; Form Pengecekan</h2>
+
+    <div class="info-box">
+      Fitur ini menggunakan API dari <strong>api-mochi.vercel.app</strong> untuk memverifikasi data akun e-wallet. Masukkan nomor HP yang terdaftar di e-wallet untuk mengecek informasi akun.
+    </div>
+
+    <form id="ewallet-form">
+      <div class="form-group">
+        <label for="ewallet-code">Pilih E-Wallet <span style="color:#dc2626">*</span></label>
+        <select id="ewallet-code" required>
+          <option value="">-- Pilih E-Wallet --</option>
+          <option value="all">ALL (cek semua e-wallet)</option>
+          <option value="wallet_ovo">OVO</option>
+          <option value="wallet_dana">DANA</option>
+          <option value="wallet_linkaja">LinkAja</option>
+          <option value="gopay_user">Gopay</option>
+          <option value="gopay_driver">Gopay Driver</option>
+          <option value="grab_user">Grab User</option>
+          <option value="wallet_shopeepay">ShopeePay</option>
+          <option value="wallet_isaku">i.saku</option>
+          <option value="wallet_astrapay">AstraPay</option>
+          <option value="qris">QRIS</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="phone-number">Nomor HP <span style="color:#dc2626">*</span></label>
+        <input type="text" id="phone-number" placeholder="Contoh: 081234567890" required
+               pattern="^0[0-9]{9,13}$" title="Masukkan nomor HP yang valid (dimulai dengan 0, 10-14 digit)">
+      </div>
+
+      <div class="form-group">
+        <label for="api-key">API Key <span class="optional">(Opsional)</span></label>
+        <input type="password" id="api-key" placeholder="MOCHI_xxxxxxxxxxxxxxxxxxx" autocomplete="off">
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="submit-btn">
+        Cek E-Wallet
+      </button>
+    </form>
+  </div>
+
+  <div id="loading-section" style="display:none">
+    <div class="card">
+      <div class="loading">
+        <div class="spinner"></div>
+        <p>Sedang memproses pengecekan...</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="result-section">
+    <div class="card">
+      <div class="result-header" id="result-header"></div>
+      <div id="result-body"></div>
+
+      <details class="raw-response">
+        <summary>Lihat Raw JSON Response</summary>
+        <pre id="raw-json"></pre>
+      </details>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>Cek E-Wallet &mdash; Powered by API Mochi</p>
+  <p style="margin-top:4px;">Data dikirim ke API eksternal untuk verifikasi.</p>
+</footer>
+
+<script>
+(function () {
+  var API_URL = 'https://api-mochi.vercel.app/api/check-ewallet';
+
+  var form = document.getElementById('ewallet-form');
+  var submitBtn = document.getElementById('submit-btn');
+  var loadingSection = document.getElementById('loading-section');
+  var resultSection = document.getElementById('result-section');
+  var resultHeader = document.getElementById('result-header');
+  var resultBody = document.getElementById('result-body');
+  var rawJson = document.getElementById('raw-json');
+
+  var walletNames = {
+    wallet_ovo: 'OVO',
+    wallet_dana: 'DANA',
+    wallet_linkaja: 'LinkAja',
+    gopay_user: 'Gopay',
+    gopay_driver: 'Gopay Driver',
+    grab_user: 'Grab User',
+    wallet_shopeepay: 'ShopeePay',
+    wallet_isaku: 'i.saku',
+    wallet_astrapay: 'AstraPay',
+    qris: 'QRIS',
+    all: 'Semua E-Wallet'
+  };
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    var ewalletCode = document.getElementById('ewallet-code').value;
+    var phoneNumber = document.getElementById('phone-number').value.trim();
+    var apiKey = document.getElementById('api-key').value.trim();
+
+    if (!ewalletCode || !phoneNumber) return;
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Memproses...';
+    loadingSection.style.display = 'block';
+    resultSection.style.display = 'none';
+
+    var body = {
+      ewallet_code: ewalletCode,
+      phone_number: phoneNumber
+    };
+    if (apiKey) body.api_key = apiKey;
+
+    fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      showResult(data, ewalletCode, phoneNumber);
+    })
+    .catch(function (err) {
+      showResult({
+        success: false,
+        message: 'Gagal menghubungi server: ' + err.message
+      }, ewalletCode, phoneNumber);
+    })
+    .finally(function () {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Cek E-Wallet';
+      loadingSection.style.display = 'none';
+    });
+  });
+
+  function showResult(data, ewalletCode, phoneNumber) {
+    resultSection.style.display = 'block';
+    rawJson.textContent = JSON.stringify(data, null, 2);
+
+    if (data.success) {
+      resultHeader.innerHTML =
+        '<span class="status-icon success">&#10004;</span>' +
+        '<div><strong style="font-size:16px">Berhasil</strong>' +
+        '<p style="font-size:13px;color:var(--muted)">Data e-wallet ditemukan untuk ' + escapeHtml(phoneNumber) + '</p></div>';
+
+      var html = '';
+      if (data.data && Array.isArray(data.data)) {
+        data.data.forEach(function (item) {
+          html += renderWalletItem(item);
+        });
+      } else if (data.data && typeof data.data === 'object' && !Array.isArray(data.data)) {
+        html += renderWalletItem(data.data);
+      } else if (data.result && Array.isArray(data.result)) {
+        data.result.forEach(function (item) {
+          html += renderWalletItem(item);
+        });
+      } else if (data.result && typeof data.result === 'object') {
+        html += renderWalletItem(data.result);
+      } else {
+        html += '<div class="result-item"><p style="color:var(--good)">' +
+                escapeHtml(data.message || 'Data berhasil ditemukan.') + '</p></div>';
+      }
+
+      resultBody.innerHTML = html;
+    } else {
+      resultHeader.innerHTML =
+        '<span class="status-icon error">&#10008;</span>' +
+        '<div><strong style="font-size:16px">Gagal</strong>' +
+        '<p style="font-size:13px;color:var(--muted)">Pengecekan untuk ' + escapeHtml(phoneNumber) + '</p></div>';
+      resultBody.innerHTML =
+        '<div class="result-item">' +
+        '<p style="color:var(--bad)">' + escapeHtml(data.message || 'Terjadi kesalahan.') + '</p>' +
+        '</div>';
+    }
+
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderWalletItem(item) {
+    var name = item.ewallet_name || item.name || item.ewallet || item.provider || 'E-Wallet';
+    var status = item.status || item.result || '';
+    var isRegistered = (
+      status === 'registered' ||
+      status === 'REGISTERED' ||
+      status === 'terdaftar' ||
+      item.registered === true ||
+      item.is_registered === true
+    );
+    var statusText = isRegistered ? 'Terdaftar' : (status || 'Tidak diketahui');
+    var badgeClass = isRegistered ? 'badge-success' : 'badge-warn';
+
+    var html = '<div class="result-item">';
+    html += '<h4>' + escapeHtml(name) +
+            ' <span class="badge ' + badgeClass + '">' + escapeHtml(statusText) + '</span></h4>';
+    html += '<dl class="result-detail">';
+
+    var fields = [
+      ['Nama Akun', item.account_name || item.nama || item.accountName],
+      ['Nomor', item.phone_number || item.phone || item.nomor],
+      ['E-Wallet', item.ewallet_name || item.name || item.ewallet || item.provider],
+      ['Kode', item.ewallet_code || item.code],
+      ['Status', statusText]
+    ];
+
+    var extraKeys = Object.keys(item);
+    var shownKeys = [
+      'ewallet_name', 'name', 'ewallet', 'provider',
+      'status', 'result', 'registered', 'is_registered',
+      'account_name', 'nama', 'accountName',
+      'phone_number', 'phone', 'nomor',
+      'ewallet_code', 'code'
+    ];
+
+    fields.forEach(function (f) {
+      if (f[1] !== undefined && f[1] !== null && f[1] !== '') {
+        html += '<dt>' + escapeHtml(f[0]) + '</dt><dd>' + escapeHtml(String(f[1])) + '</dd>';
+      }
+    });
+
+    extraKeys.forEach(function (key) {
+      if (shownKeys.indexOf(key) === -1 && item[key] !== null && item[key] !== undefined && item[key] !== '') {
+        var label = key.replace(/_/g, ' ').replace(/\b\w/g, function (c) { return c.toUpperCase(); });
+        html += '<dt>' + escapeHtml(label) + '</dt><dd>' + escapeHtml(String(item[key])) + '</dd>';
+      }
+    });
+
+    html += '</dl></div>';
+    return html;
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+})();
+</script>
+
+</body>
+</html>
