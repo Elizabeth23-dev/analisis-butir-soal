@@ -581,6 +581,7 @@
 
             <div class="btn-group" style="margin-top:1.5rem;">
                 <button class="btn btn-success" onclick="exportCSV()">Export CSV</button>
+                <button class="btn btn-success" onclick="exportXLSX()">Ekspor Excel (.xlsx)</button>
                 <button class="btn btn-outline" onclick="window.print()">Cetak / PDF</button>
             </div>
         </div>
@@ -839,11 +840,55 @@
             link.click();
         }
 
+        function tableToRows(table) {
+            const out = [];
+            table.querySelectorAll('tr').forEach(tr => {
+                const row = [];
+                tr.querySelectorAll('th, td').forEach(c => {
+                    const inp = c.querySelector('input');
+                    let t;
+                    if (inp) {
+                        t = inp.value.trim();
+                    } else {
+                        t = c.innerText.trim();
+                    }
+                    if (t === '') { row.push(null); return; }
+                    const n = Number(t.replace(',', '.'));
+                    row.push(Number.isFinite(n) ? n : t);
+                });
+                out.push(row);
+            });
+            return out;
+        }
+
+        function exportXLSX() {
+            const resultsCard = document.getElementById('results-card');
+            if (resultsCard.classList.contains('hidden')) {
+                alert('Hitung Daya Pembeda terlebih dahulu sebelum mengekspor.');
+                return;
+            }
+            const sheets = [];
+            const resultsTable = document.getElementById('results-table');
+            sheets.push({ name: 'Hasil', rows: tableToRows(resultsTable) });
+
+            // Sheet input sesuai mode aktif
+            if (currentMode === 'summary') {
+                const tbl = document.getElementById('summary-table');
+                sheets.push({ name: 'Input Ringkasan', rows: tableToRows(tbl) });
+            } else {
+                const tbl = document.getElementById('detail-table');
+                sheets.push({ name: 'Input Detail', rows: tableToRows(tbl) });
+            }
+            window.absExportXLSX('hasil_daya_pembeda.xlsx', sheets);
+        }
+
         // ============ Init ============
         generateSummaryTable();
         generateDetailTable();
     </script>
-<script src="auth.js"></script>
+<script src="xlsx.mini.min.js"></script>
+<script src="export-xlsx.js"></script>
+<script src="persist.js"></script>
 <script src="nav.js"></script>
 </body>
 </html>
