@@ -7,7 +7,8 @@
     { href: 'tingkat-kesukaran.html', label: 'Tingkat Kesukaran' },
     { href: 'cronbach-alpha.html', label: "Cronbach's Alpha" },
     { href: 'validitas-konstruk.html', label: 'Validitas Konstruk' },
-    { href: 'validitas-isi.html', label: 'Validitas Isi' }
+    { href: 'validitas-isi.html', label: 'Validitas Isi' },
+    { href: 'cek-ewallet.html', label: 'Cek E-Wallet' }
   ];
 
   const nav = document.createElement('nav');

@@ -637,11 +637,16 @@ Item1  Item2  Item3  Item4  Item5
 
             <!-- Detailed Steps -->
             <div class="steps-list" id="stepsContainer"></div>
+
+            <div style="margin-top:1.25rem; text-align:center;">
+                <button class="btn btn-success" onclick="exportXLSX()">Ekspor Excel (.xlsx)</button>
+            </div>
         </div>
     </div>
 
     <script>
         let dataTable = [];
+        let lastCalc = null;
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('active'));
@@ -921,12 +926,69 @@ Item1  Item2  Item3  Item4  Item5
 
             document.getElementById('stepsContainer').innerHTML = stepsHTML;
 
+            // Simpan untuk export
+            lastCalc = {
+                n: n, r: r,
+                data: data,
+                itemMeans: itemMeans,
+                itemVariances: itemVariances,
+                sumItemVariances: sumItemVariances,
+                totalScores: totalScores,
+                totalMean: totalMean,
+                totalVariance: totalVariance,
+                alpha: alpha,
+                interpretation: interp
+            };
+
             // Show result
             document.getElementById('resultSection').classList.add('show');
             document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth' });
         }
+
+        function exportXLSX() {
+            if (!lastCalc) {
+                alert('Hitung Cronbach\'s Alpha terlebih dahulu sebelum mengekspor.');
+                return;
+            }
+            const c = lastCalc;
+            // Sheet Hasil: ringkasan + interpretasi
+            const hasil = [
+                ['Metrik', 'Nilai'],
+                ['Jumlah Butir (n)', c.n],
+                ['Jumlah Responden', c.r],
+                ['Sum Varians Item (\u03A3 si\u00B2)', Number(c.sumItemVariances.toFixed(4))],
+                ['Varians Total (st\u00B2)', Number(c.totalVariance.toFixed(4))],
+                ['Cronbach\'s Alpha (\u03B1)', Number(c.alpha.toFixed(4))],
+                ['Interpretasi', c.interpretation]
+            ];
+            // Sheet Input: tabel skor responden x item
+            const input = [['Responden']];
+            for (let j = 1; j <= c.n; j++) input[0].push('Item ' + j);
+            input[0].push('Total');
+            for (let i = 0; i < c.r; i++) {
+                const row = ['R' + (i + 1)];
+                for (let j = 0; j < c.n; j++) row.push(c.data[i][j]);
+                row.push(c.totalScores[i]);
+                input.push(row);
+            }
+            // Sheet Item Stats
+            const stats = [['Item', 'Rata-rata', 'Varians (si\u00B2)']];
+            for (let j = 0; j < c.n; j++) {
+                stats.push(['Item ' + (j + 1), Number(c.itemMeans[j].toFixed(4)), Number(c.itemVariances[j].toFixed(4))]);
+            }
+            stats.push([]);
+            stats.push(['\u03A3 si\u00B2', '', Number(c.sumItemVariances.toFixed(4))]);
+
+            window.absExportXLSX('hasil_cronbach_alpha.xlsx', [
+                { name: 'Hasil', rows: hasil },
+                { name: 'Input', rows: input },
+                { name: 'Statistik Item', rows: stats }
+            ]);
+        }
     </script>
-<script src="auth.js"></script>
+<script src="xlsx.mini.min.js"></script>
+<script src="export-xlsx.js"></script>
+<script src="persist.js"></script>
 <script src="nav.js"></script>
 </body>
 </html>
