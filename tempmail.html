@@ -246,6 +246,109 @@
     font-size: 12px;
     padding: 16px;
   }
+  .meta-actions {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .meta-actions a {
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+    margin-left: 6px;
+    font-weight: 500;
+  }
+  .meta-actions a:hover { text-decoration: underline; }
+  dialog.tm-dialog {
+    border: none;
+    border-radius: 14px;
+    padding: 0;
+    width: min(420px, 92vw);
+    box-shadow: 0 20px 60px -10px rgba(15, 23, 42, 0.4);
+    background: #fff;
+    color: #0f172a;
+  }
+  dialog.tm-dialog::backdrop {
+    background: rgba(15, 23, 42, 0.45);
+  }
+  .tm-dialog .dlg-head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tm-dialog .dlg-head h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+  }
+  .tm-dialog .dlg-head p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .tm-dialog .dlg-body {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .tm-dialog label {
+    font-size: 13px;
+    font-weight: 500;
+    color: #0f172a;
+  }
+  .tm-dialog input[type="text"],
+  .tm-dialog input[type="email"],
+  .tm-dialog input[type="password"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    background: #f8fafc;
+  }
+  .tm-dialog input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: -1px;
+    background: #fff;
+  }
+  .tm-dialog .dlg-error {
+    color: var(--bad);
+    font-size: 13px;
+    min-height: 18px;
+  }
+  .tm-dialog .dlg-foot {
+    padding: 12px 20px 16px;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .tm-dialog .dlg-foot .left {
+    margin-right: auto;
+  }
+  .pwd-row {
+    display: flex;
+    gap: 6px;
+    align-items: stretch;
+  }
+  .pwd-row input { flex: 1; }
+  .pwd-row button {
+    background: #f1f5f9;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0 10px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .pwd-hint {
+    background: #fef9c3;
+    border: 1px solid #fde68a;
+    color: #713f12;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
 </style>
 </head>
 <body>
@@ -259,10 +362,12 @@
       <div class="address-row">
         <input id="addressInput" class="address-input" type="text" readonly placeholder="Belum ada inbox. Tekan Generate &rarr;" />
         <button id="copyBtn" class="btn btn-ghost" disabled>Salin</button>
+        <button id="loginBtn" class="btn btn-ghost">Masuk</button>
         <button id="generateBtn" class="btn btn-primary">Generate</button>
         <button id="deleteInboxBtn" class="btn btn-danger" disabled>Hapus Inbox</button>
       </div>
       <div class="meta" id="inboxMeta">Domain: <b id="domainEcho">memuat&hellip;</b></div>
+      <div class="meta-actions" id="inboxActions"></div>
     </section>
 
     <div class="layout">
@@ -294,6 +399,67 @@
 
   <div class="toast" id="toast"></div>
 
+  <dialog class="tm-dialog" id="generateDialog">
+    <div class="dlg-head">
+      <h3>Buat inbox baru</h3>
+      <p>Password opsional. Pakai password kalau Anda ingin <b>login lagi nanti</b> dari device lain.</p>
+    </div>
+    <div class="dlg-body">
+      <label for="genPassword">Password (opsional, minimal 4 karakter)</label>
+      <div class="pwd-row">
+        <input id="genPassword" type="password" autocomplete="new-password" placeholder="kosongkan jika tidak butuh login lagi" />
+        <button type="button" data-toggle="genPassword">Lihat</button>
+      </div>
+      <div class="pwd-hint" id="genPwdHint">Tanpa password: alamat hanya bisa dibuka dari browser ini. Bersihkan localStorage = kehilangan akses.</div>
+      <div class="dlg-error" id="genErr"></div>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn btn-ghost" data-dlg-close="generateDialog">Batal</button>
+      <button class="btn btn-primary" id="genConfirmBtn">Buat inbox</button>
+    </div>
+  </dialog>
+
+  <dialog class="tm-dialog" id="loginDialog">
+    <div class="dlg-head">
+      <h3>Masuk ke inbox lama</h3>
+      <p>Masukkan alamat lengkap & password yang Anda set saat membuat inbox.</p>
+    </div>
+    <div class="dlg-body">
+      <label for="loginAddress">Alamat email</label>
+      <input id="loginAddress" type="email" autocomplete="username" placeholder="contoh: abc123@animelovers.my.id" />
+      <label for="loginPassword">Password</label>
+      <div class="pwd-row">
+        <input id="loginPassword" type="password" autocomplete="current-password" />
+        <button type="button" data-toggle="loginPassword">Lihat</button>
+      </div>
+      <div class="dlg-error" id="loginErr"></div>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn btn-ghost" data-dlg-close="loginDialog">Batal</button>
+      <button class="btn btn-primary" id="loginConfirmBtn">Masuk</button>
+    </div>
+  </dialog>
+
+  <dialog class="tm-dialog" id="passwordDialog">
+    <div class="dlg-head">
+      <h3 id="pwdDlgTitle">Atur password inbox</h3>
+      <p id="pwdDlgSub">Setelah disimpan, Anda bisa login kembali ke inbox ini dari device lain dengan alamat + password.</p>
+    </div>
+    <div class="dlg-body">
+      <label for="pwdInput">Password baru (minimal 4 karakter)</label>
+      <div class="pwd-row">
+        <input id="pwdInput" type="password" autocomplete="new-password" />
+        <button type="button" data-toggle="pwdInput">Lihat</button>
+      </div>
+      <div class="dlg-error" id="pwdErr"></div>
+    </div>
+    <div class="dlg-foot">
+      <button class="btn btn-danger left" id="pwdRemoveBtn" style="display:none">Hapus password</button>
+      <button class="btn btn-ghost" data-dlg-close="passwordDialog">Batal</button>
+      <button class="btn btn-primary" id="pwdSaveBtn">Simpan</button>
+    </div>
+  </dialog>
+
 <script>
 (function () {
   const API_BASE = "https://tempmail-6e05746b.fly.dev";
@@ -304,18 +470,23 @@
   const addressInput = $("addressInput");
   const copyBtn = $("copyBtn");
   const generateBtn = $("generateBtn");
+  const loginBtn = $("loginBtn");
   const deleteInboxBtn = $("deleteInboxBtn");
   const refreshBtn = $("refreshBtn");
   const messagesList = $("messagesList");
   const msgCountBadge = $("msgCountBadge");
   const detailCard = $("detailCard");
   const inboxMeta = $("inboxMeta");
+  const inboxActions = $("inboxActions");
   const domainEcho = $("domainEcho");
   const ttlHoursEcho = $("ttlHours");
   const toast = $("toast");
+  const generateDialog = $("generateDialog");
+  const loginDialog = $("loginDialog");
+  const passwordDialog = $("passwordDialog");
 
   const state = {
-    inbox: null, // { address, token, expires_at }
+    inbox: null, // { address, token, expires_at, has_password }
     messages: [],
     selectedId: null,
     lastFetch: 0,
@@ -400,12 +571,21 @@
       generateBtn.textContent = "Acak baru";
       const expiry = formatExpiry(state.inbox.expires_at);
       inboxMeta.innerHTML = `Inbox aktif sampai <b>${escapeHtml(expiry)}</b>`;
+      const hasPwd = !!state.inbox.has_password;
+      inboxActions.innerHTML = hasPwd
+        ? `&#128274; Password aktif &mdash; bisa login dari device lain. <a id="changePwdLink">Ubah</a> <a id="removePwdLink">Hapus</a>`
+        : `&#128275; Belum ada password &mdash; akses cuma dari browser ini. <a id="changePwdLink">Atur password</a>`;
+      const change = $("changePwdLink");
+      if (change) change.addEventListener("click", () => openPasswordDialog(false));
+      const remove = $("removePwdLink");
+      if (remove) remove.addEventListener("click", () => openPasswordDialog(true));
     } else {
       addressInput.value = "";
       copyBtn.disabled = true;
       deleteInboxBtn.disabled = true;
       generateBtn.textContent = "Generate";
       inboxMeta.innerHTML = `Domain: <b id="domainEcho">${escapeHtml(domainEcho.textContent)}</b>`;
+      inboxActions.innerHTML = "";
     }
   }
 
@@ -499,11 +679,62 @@
     $("deleteMsgBtn").addEventListener("click", () => deleteMessage(detail.id));
   }
 
-  async function generate() {
+  function openGenerateDialog() {
+    $("genPassword").value = "";
+    $("genErr").textContent = "";
+    if (typeof generateDialog.showModal === "function") {
+      generateDialog.showModal();
+    } else {
+      generateDialog.setAttribute("open", "");
+    }
+  }
+
+  function openLoginDialog() {
+    $("loginAddress").value = "";
+    $("loginPassword").value = "";
+    $("loginErr").textContent = "";
+    if (typeof loginDialog.showModal === "function") {
+      loginDialog.showModal();
+    } else {
+      loginDialog.setAttribute("open", "");
+    }
+    setTimeout(() => $("loginAddress").focus(), 50);
+  }
+
+  function openPasswordDialog(removeMode) {
+    if (!state.inbox) return;
+    $("pwdInput").value = "";
+    $("pwdErr").textContent = "";
+    $("pwdDlgTitle").textContent = state.inbox.has_password ? "Ubah password inbox" : "Atur password inbox";
+    $("pwdRemoveBtn").style.display = state.inbox.has_password ? "" : "none";
+    if (typeof passwordDialog.showModal === "function") {
+      passwordDialog.showModal();
+    } else {
+      passwordDialog.setAttribute("open", "");
+    }
+    setTimeout(() => $("pwdInput").focus(), 50);
+  }
+
+  function closeDialog(dlg) {
+    if (typeof dlg.close === "function") dlg.close();
+    else dlg.removeAttribute("open");
+  }
+
+  async function generate(password) {
     generateBtn.disabled = true;
     try {
-      const res = await fetch(API_BASE + "/api/inboxes", { method: "POST" });
-      if (!res.ok) throw new Error("status " + res.status);
+      const body = {};
+      if (password) body.password = password;
+      const res = await fetch(API_BASE + "/api/inboxes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        let msg = "status " + res.status;
+        try { const j = await res.json(); if (j.detail) msg = j.detail; } catch (_) {}
+        throw new Error(msg);
+      }
       const data = await res.json();
       state.inbox = data;
       state.messages = [];
@@ -515,10 +746,84 @@
       showToast("Inbox baru: " + data.address);
       startPolling();
       pollMessages();
+      return true;
     } catch (e) {
       showToast("Gagal generate: " + e.message);
+      return false;
     } finally {
       generateBtn.disabled = false;
+    }
+  }
+
+  async function loginInbox(address, password) {
+    try {
+      const res = await fetch(API_BASE + "/api/inboxes/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ address, password }),
+      });
+      if (!res.ok) {
+        let msg = "status " + res.status;
+        try { const j = await res.json(); if (j.detail) msg = j.detail; } catch (_) {}
+        throw new Error(msg);
+      }
+      const data = await res.json();
+      state.inbox = data;
+      state.messages = [];
+      state.selectedId = null;
+      saveInbox();
+      renderInbox();
+      renderMessages();
+      renderDetail(null);
+      showToast("Berhasil masuk ke " + data.address);
+      startPolling();
+      pollMessages();
+      return true;
+    } catch (e) {
+      $("loginErr").textContent = e.message || "gagal login";
+      return false;
+    }
+  }
+
+  async function setPassword(password) {
+    if (!state.inbox) return false;
+    try {
+      const url = `${API_BASE}/api/inboxes/${encodeURIComponent(state.inbox.address)}/password?token=${encodeURIComponent(state.inbox.token)}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      if (!res.ok) {
+        let msg = "status " + res.status;
+        try { const j = await res.json(); if (j.detail) msg = j.detail; } catch (_) {}
+        throw new Error(msg);
+      }
+      state.inbox.has_password = true;
+      saveInbox();
+      renderInbox();
+      showToast("Password tersimpan");
+      return true;
+    } catch (e) {
+      $("pwdErr").textContent = e.message || "gagal";
+      return false;
+    }
+  }
+
+  async function clearPassword() {
+    if (!state.inbox) return false;
+    try {
+      const url = `${API_BASE}/api/inboxes/${encodeURIComponent(state.inbox.address)}/password?token=${encodeURIComponent(state.inbox.token)}`;
+      const res = await fetch(url, { method: "DELETE" });
+      if (!res.ok) throw new Error("status " + res.status);
+      state.inbox.has_password = false;
+      saveInbox();
+      renderInbox();
+      showToast("Password dihapus");
+      return true;
+    } catch (e) {
+      $("pwdErr").textContent = e.message || "gagal";
+      return false;
     }
   }
 
@@ -623,10 +928,83 @@
     }
   }
 
-  generateBtn.addEventListener("click", generate);
+  generateBtn.addEventListener("click", openGenerateDialog);
+  loginBtn.addEventListener("click", openLoginDialog);
   copyBtn.addEventListener("click", copyAddress);
   deleteInboxBtn.addEventListener("click", deleteInbox);
   refreshBtn.addEventListener("click", pollMessages);
+
+  document.querySelectorAll("[data-dlg-close]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-dlg-close");
+      const dlg = $(id);
+      if (dlg) closeDialog(dlg);
+    });
+  });
+
+  document.querySelectorAll("[data-toggle]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-toggle");
+      const inp = $(id);
+      if (!inp) return;
+      const next = inp.type === "password" ? "text" : "password";
+      inp.type = next;
+      btn.textContent = next === "text" ? "Sembunyikan" : "Lihat";
+    });
+  });
+
+  $("genConfirmBtn").addEventListener("click", async () => {
+    const pwd = ($("genPassword").value || "").trim();
+    if (pwd && pwd.length < 4) {
+      $("genErr").textContent = "password minimal 4 karakter (atau kosongkan)";
+      return;
+    }
+    const ok = await generate(pwd || null);
+    if (ok) closeDialog(generateDialog);
+  });
+
+  $("loginConfirmBtn").addEventListener("click", async () => {
+    const addr = ($("loginAddress").value || "").trim().toLowerCase();
+    const pwd = $("loginPassword").value || "";
+    if (!addr || !addr.includes("@")) {
+      $("loginErr").textContent = "alamat tidak valid";
+      return;
+    }
+    if (!pwd) {
+      $("loginErr").textContent = "isi password";
+      return;
+    }
+    const ok = await loginInbox(addr, pwd);
+    if (ok) closeDialog(loginDialog);
+  });
+
+  $("pwdSaveBtn").addEventListener("click", async () => {
+    const pwd = ($("pwdInput").value || "").trim();
+    if (pwd.length < 4) {
+      $("pwdErr").textContent = "password minimal 4 karakter";
+      return;
+    }
+    const ok = await setPassword(pwd);
+    if (ok) closeDialog(passwordDialog);
+  });
+
+  $("pwdRemoveBtn").addEventListener("click", async () => {
+    if (!confirm("Hapus password? Setelah ini Anda hanya bisa akses inbox dari browser ini.")) return;
+    const ok = await clearPassword();
+    if (ok) closeDialog(passwordDialog);
+  });
+
+  [generateDialog, loginDialog, passwordDialog].forEach((dlg) => {
+    dlg.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && e.target && e.target.tagName === "INPUT") {
+        e.preventDefault();
+        const id = dlg.id;
+        if (id === "generateDialog") $("genConfirmBtn").click();
+        else if (id === "loginDialog") $("loginConfirmBtn").click();
+        else if (id === "passwordDialog") $("pwdSaveBtn").click();
+      }
+    });
+  });
 
   loadInbox();
   loadConfig().then(renderInbox);
