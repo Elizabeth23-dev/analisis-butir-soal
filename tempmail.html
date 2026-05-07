@@ -1,0 +1,642 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TempMail - Email Sementara</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #ffffff;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --accent: #2563eb;
+    --accent-2: #1d4ed8;
+    --good: #16a34a;
+    --warn: #d97706;
+    --bad: #dc2626;
+    --row-alt: #f8fafc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 60%);
+    color: #0f172a;
+    min-height: 100vh;
+  }
+  header {
+    padding: 28px 16px 12px;
+    text-align: center;
+  }
+  header h1 {
+    margin: 0 0 6px;
+    font-size: 26px;
+    color: var(--bg);
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 6px 20px -10px rgba(15, 23, 42, 0.15);
+    margin-bottom: 18px;
+  }
+  .address-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  .address-input {
+    flex: 1 1 320px;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: #f8fafc;
+    color: #0f172a;
+  }
+  .address-input::placeholder { color: var(--muted); }
+  .btn {
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    transition: transform .05s ease, background .15s ease, color .15s ease;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: var(--accent-2); }
+  .btn-ghost { background: #f1f5f9; color: #0f172a; }
+  .btn-ghost:hover { background: #e2e8f0; }
+  .btn-danger { background: #fee2e2; color: var(--bad); }
+  .btn-danger:hover { background: #fecaca; }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .meta {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(260px, 360px) 1fr;
+    gap: 18px;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  .list-card { padding: 0; overflow: hidden; }
+  .list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: #f8fafc;
+  }
+  .list-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #e0e7ff;
+    color: var(--accent-2);
+    margin-left: 6px;
+  }
+  .refresh-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .refresh-btn:hover { background: #e2e8f0; color: #0f172a; }
+  .refresh-btn.spinning { color: var(--accent); }
+  .messages {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+  .message-item {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background .15s ease;
+  }
+  .message-item:hover { background: #f8fafc; }
+  .message-item.active { background: #eef2ff; border-left: 3px solid var(--accent); padding-left: 13px; }
+  .message-item .from { font-weight: 600; font-size: 14px; display: flex; justify-content: space-between; gap: 8px; }
+  .message-item .from .when { color: var(--muted); font-weight: 400; font-size: 12px; flex-shrink: 0; }
+  .message-item .subject { font-size: 13px; margin-top: 3px; }
+  .message-item .preview { font-size: 12px; color: var(--muted); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .empty-state {
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .detail-card { padding: 0; min-height: 200px; }
+  .detail-empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--muted);
+  }
+  .detail-empty .icon { font-size: 36px; margin-bottom: 8px; }
+  .detail-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-header h2 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    color: #0f172a;
+    word-break: break-word;
+  }
+  .detail-meta { font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .detail-meta b { color: #0f172a; font-weight: 600; }
+  .detail-actions {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    background: #f8fafc;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .tab-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #0f172a;
+  }
+  .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .detail-body {
+    padding: 20px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  .detail-body iframe {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #fff;
+    min-height: 320px;
+  }
+  .detail-body pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    color: #0f172a;
+    margin: 0;
+  }
+  .help {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #0f172a;
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity .2s ease, transform .2s ease;
+    pointer-events: none;
+    z-index: 9999;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  footer {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    padding: 16px;
+  }
+</style>
+</head>
+<body>
+  <header>
+    <h1>TempMail &mdash; Email Sementara</h1>
+    <p>Generate alamat email acak untuk verifikasi situs lain. Inbox & pesan otomatis dihapus setelah <span id="ttlHours">24</span> jam.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="address-row">
+        <input id="addressInput" class="address-input" type="text" readonly placeholder="Belum ada inbox. Tekan Generate &rarr;" />
+        <button id="copyBtn" class="btn btn-ghost" disabled>Salin</button>
+        <button id="generateBtn" class="btn btn-primary">Generate</button>
+        <button id="deleteInboxBtn" class="btn btn-danger" disabled>Hapus Inbox</button>
+      </div>
+      <div class="meta" id="inboxMeta">Domain: <b id="domainEcho">memuat&hellip;</b></div>
+    </section>
+
+    <div class="layout">
+      <section class="card list-card">
+        <div class="list-header">
+          <h3>Kotak masuk <span class="badge" id="msgCountBadge">0</span></h3>
+          <button class="refresh-btn" id="refreshBtn" title="Refresh sekarang">&#x21bb; Refresh</button>
+        </div>
+        <div class="messages" id="messagesList">
+          <div class="empty-state">Generate inbox untuk mulai menerima email.</div>
+        </div>
+      </section>
+
+      <section class="card detail-card" id="detailCard">
+        <div class="detail-empty">
+          <div class="icon">&#9993;</div>
+          <div>Pilih sebuah pesan</div>
+          <div class="help" style="margin-top:6px">Pesan baru akan muncul otomatis setiap 5 detik.</div>
+        </div>
+      </section>
+    </div>
+
+    <p class="help" style="text-align:center">
+      Pesan dilindungi token rahasia yang disimpan di browser ini saja. Hapus inbox saat tidak dipakai.
+    </p>
+  </main>
+
+  <footer>TempMail &mdash; bagian dari koleksi alat di Analisis Butir Soal.</footer>
+
+  <div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const API_BASE = "https://tempmail-6e05746b.fly.dev";
+  const STORAGE_KEY = "tempmail_inbox_v1";
+  const POLL_MS = 5000;
+
+  const $ = (id) => document.getElementById(id);
+  const addressInput = $("addressInput");
+  const copyBtn = $("copyBtn");
+  const generateBtn = $("generateBtn");
+  const deleteInboxBtn = $("deleteInboxBtn");
+  const refreshBtn = $("refreshBtn");
+  const messagesList = $("messagesList");
+  const msgCountBadge = $("msgCountBadge");
+  const detailCard = $("detailCard");
+  const inboxMeta = $("inboxMeta");
+  const domainEcho = $("domainEcho");
+  const ttlHoursEcho = $("ttlHours");
+  const toast = $("toast");
+
+  const state = {
+    inbox: null, // { address, token, expires_at }
+    messages: [],
+    selectedId: null,
+    lastFetch: 0,
+    pollTimer: null,
+    detailMode: "html", // or "text"
+  };
+
+  let toastTimer = null;
+  function showToast(text) {
+    toast.textContent = text;
+    toast.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove("show"), 2000);
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  function formatRelative(iso) {
+    if (!iso) return "";
+    const d = new Date(iso.endsWith("Z") || iso.includes("+") ? iso : iso + "Z");
+    const diff = (Date.now() - d.getTime()) / 1000;
+    if (diff < 5) return "baru saja";
+    if (diff < 60) return Math.floor(diff) + "d lalu";
+    if (diff < 3600) return Math.floor(diff / 60) + "m lalu";
+    if (diff < 86400) return Math.floor(diff / 3600) + "j lalu";
+    return d.toLocaleString("id-ID");
+  }
+
+  function formatExpiry(iso) {
+    if (!iso) return "";
+    const d = new Date(iso.endsWith("Z") || iso.includes("+") ? iso : iso + "Z");
+    const diff = d.getTime() - Date.now();
+    if (diff <= 0) return "kedaluwarsa";
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    return `${h}j ${m}m lagi`;
+  }
+
+  function loadInbox() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data && data.address && data.token) {
+          state.inbox = data;
+        }
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  function saveInbox() {
+    if (state.inbox) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.inbox));
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  }
+
+  async function loadConfig() {
+    try {
+      const res = await fetch(API_BASE + "/api/config");
+      if (!res.ok) throw new Error("config fetch failed");
+      const data = await res.json();
+      domainEcho.textContent = data.domain;
+      ttlHoursEcho.textContent = data.inbox_ttl_hours;
+    } catch (e) {
+      domainEcho.textContent = "(tidak dapat memuat)";
+    }
+  }
+
+  function renderInbox() {
+    if (state.inbox) {
+      addressInput.value = state.inbox.address;
+      copyBtn.disabled = false;
+      deleteInboxBtn.disabled = false;
+      generateBtn.textContent = "Acak baru";
+      const expiry = formatExpiry(state.inbox.expires_at);
+      inboxMeta.innerHTML = `Inbox aktif sampai <b>${escapeHtml(expiry)}</b>`;
+    } else {
+      addressInput.value = "";
+      copyBtn.disabled = true;
+      deleteInboxBtn.disabled = true;
+      generateBtn.textContent = "Generate";
+      inboxMeta.innerHTML = `Domain: <b id="domainEcho">${escapeHtml(domainEcho.textContent)}</b>`;
+    }
+  }
+
+  function renderMessages() {
+    msgCountBadge.textContent = state.messages.length;
+    if (!state.inbox) {
+      messagesList.innerHTML = '<div class="empty-state">Generate inbox untuk mulai menerima email.</div>';
+      return;
+    }
+    if (state.messages.length === 0) {
+      messagesList.innerHTML = '<div class="empty-state">Menunggu email&hellip;<br/><span style="font-size:11px">Refresh otomatis tiap 5 detik</span></div>';
+      return;
+    }
+    messagesList.innerHTML = state.messages.map((m) => {
+      const isActive = m.id === state.selectedId;
+      const fromName = m.from_name || m.from_address;
+      return `
+        <div class="message-item ${isActive ? "active" : ""}" data-id="${m.id}">
+          <div class="from">
+            <span>${escapeHtml(fromName)}</span>
+            <span class="when">${escapeHtml(formatRelative(m.received_at))}</span>
+          </div>
+          <div class="subject">${escapeHtml(m.subject || "(tanpa subjek)")}</div>
+          <div class="preview">${escapeHtml(m.preview || "")}</div>
+        </div>
+      `;
+    }).join("");
+    messagesList.querySelectorAll(".message-item").forEach((el) => {
+      el.addEventListener("click", () => {
+        const id = Number(el.dataset.id);
+        selectMessage(id);
+      });
+    });
+  }
+
+  function renderDetail(detail) {
+    if (!detail) {
+      detailCard.innerHTML = `
+        <div class="detail-empty">
+          <div class="icon">&#9993;</div>
+          <div>Pilih sebuah pesan</div>
+          <div class="help" style="margin-top:6px">Pesan baru akan muncul otomatis setiap 5 detik.</div>
+        </div>`;
+      return;
+    }
+    const fromLabel = detail.from_name
+      ? `${escapeHtml(detail.from_name)} &lt;${escapeHtml(detail.from_address)}&gt;`
+      : escapeHtml(detail.from_address);
+    const hasHtml = detail.has_html && detail.html_body;
+    const hasText = !!detail.text_body;
+    if (!hasHtml && hasText) state.detailMode = "text";
+    if (!hasText && hasHtml) state.detailMode = "html";
+
+    detailCard.innerHTML = `
+      <div class="detail-header">
+        <h2>${escapeHtml(detail.subject || "(tanpa subjek)")}</h2>
+        <div class="detail-meta">
+          <div>Dari: <b>${fromLabel}</b></div>
+          <div>Untuk: <b>${escapeHtml(detail.to_address)}</b></div>
+          <div>Diterima: <b>${escapeHtml(formatRelative(detail.received_at))}</b></div>
+        </div>
+      </div>
+      <div class="detail-actions">
+        ${hasHtml ? `<button class="tab-btn ${state.detailMode === "html" ? "active" : ""}" data-mode="html">HTML</button>` : ""}
+        ${hasText ? `<button class="tab-btn ${state.detailMode === "text" ? "active" : ""}" data-mode="text">Plain text</button>` : ""}
+        <span style="flex:1"></span>
+        <button class="btn btn-danger" id="deleteMsgBtn">Hapus pesan</button>
+      </div>
+      <div class="detail-body" id="detailBody"></div>
+    `;
+    const detailBody = $("detailBody");
+    function renderBody() {
+      if (state.detailMode === "html" && hasHtml) {
+        const iframe = document.createElement("iframe");
+        iframe.setAttribute("sandbox", "");
+        iframe.srcdoc = detail.html_body;
+        detailBody.innerHTML = "";
+        detailBody.appendChild(iframe);
+      } else {
+        detailBody.innerHTML = `<pre>${escapeHtml(detail.text_body || "(kosong)")}</pre>`;
+      }
+    }
+    renderBody();
+    detailCard.querySelectorAll(".tab-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        state.detailMode = btn.dataset.mode;
+        detailCard.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b === btn));
+        renderBody();
+      });
+    });
+    $("deleteMsgBtn").addEventListener("click", () => deleteMessage(detail.id));
+  }
+
+  async function generate() {
+    generateBtn.disabled = true;
+    try {
+      const res = await fetch(API_BASE + "/api/inboxes", { method: "POST" });
+      if (!res.ok) throw new Error("status " + res.status);
+      const data = await res.json();
+      state.inbox = data;
+      state.messages = [];
+      state.selectedId = null;
+      saveInbox();
+      renderInbox();
+      renderMessages();
+      renderDetail(null);
+      showToast("Inbox baru: " + data.address);
+      startPolling();
+      pollMessages();
+    } catch (e) {
+      showToast("Gagal generate: " + e.message);
+    } finally {
+      generateBtn.disabled = false;
+    }
+  }
+
+  async function pollMessages() {
+    if (!state.inbox) return;
+    refreshBtn.classList.add("spinning");
+    try {
+      const url = `${API_BASE}/api/inboxes/${encodeURIComponent(state.inbox.address)}/messages?token=${encodeURIComponent(state.inbox.token)}`;
+      const res = await fetch(url);
+      if (res.status === 410 || res.status === 404) {
+        showToast("Inbox kedaluwarsa atau tidak ditemukan");
+        clearInbox();
+        return;
+      }
+      if (!res.ok) throw new Error("status " + res.status);
+      const data = await res.json();
+      const prevCount = state.messages.length;
+      state.messages = data;
+      if (data.length > prevCount && prevCount > 0) {
+        showToast(`${data.length - prevCount} pesan baru`);
+      }
+      renderMessages();
+    } catch (e) {
+      // silent on poll
+    } finally {
+      refreshBtn.classList.remove("spinning");
+    }
+  }
+
+  async function selectMessage(id) {
+    if (!state.inbox) return;
+    state.selectedId = id;
+    renderMessages();
+    try {
+      const url = `${API_BASE}/api/inboxes/${encodeURIComponent(state.inbox.address)}/messages/${id}?token=${encodeURIComponent(state.inbox.token)}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("status " + res.status);
+      const detail = await res.json();
+      renderDetail(detail);
+    } catch (e) {
+      showToast("Gagal memuat detail: " + e.message);
+    }
+  }
+
+  async function deleteMessage(id) {
+    if (!state.inbox || !confirm("Hapus pesan ini?")) return;
+    try {
+      const url = `${API_BASE}/api/inboxes/${encodeURIComponent(state.inbox.address)}/messages/${id}?token=${encodeURIComponent(state.inbox.token)}`;
+      const res = await fetch(url, { method: "DELETE" });
+      if (!res.ok) throw new Error("status " + res.status);
+      state.selectedId = null;
+      await pollMessages();
+      renderDetail(null);
+      showToast("Pesan dihapus");
+    } catch (e) {
+      showToast("Gagal hapus: " + e.message);
+    }
+  }
+
+  async function deleteInbox() {
+    if (!state.inbox || !confirm("Hapus inbox ini? Semua pesan akan hilang.")) return;
+    try {
+      const url = `${API_BASE}/api/inboxes/${encodeURIComponent(state.inbox.address)}?token=${encodeURIComponent(state.inbox.token)}`;
+      await fetch(url, { method: "DELETE" });
+    } catch (e) { /* ignore */ }
+    clearInbox();
+    showToast("Inbox dihapus");
+  }
+
+  function clearInbox() {
+    state.inbox = null;
+    state.messages = [];
+    state.selectedId = null;
+    saveInbox();
+    renderInbox();
+    renderMessages();
+    renderDetail(null);
+    stopPolling();
+  }
+
+  function copyAddress() {
+    if (!state.inbox) return;
+    navigator.clipboard.writeText(state.inbox.address).then(
+      () => showToast("Alamat tersalin"),
+      () => {
+        addressInput.select();
+        document.execCommand("copy");
+        showToast("Alamat tersalin");
+      }
+    );
+  }
+
+  function startPolling() {
+    stopPolling();
+    state.pollTimer = setInterval(pollMessages, POLL_MS);
+  }
+
+  function stopPolling() {
+    if (state.pollTimer) {
+      clearInterval(state.pollTimer);
+      state.pollTimer = null;
+    }
+  }
+
+  generateBtn.addEventListener("click", generate);
+  copyBtn.addEventListener("click", copyAddress);
+  deleteInboxBtn.addEventListener("click", deleteInbox);
+  refreshBtn.addEventListener("click", pollMessages);
+
+  loadInbox();
+  loadConfig().then(renderInbox);
+  renderInbox();
+  if (state.inbox) {
+    pollMessages();
+    startPolling();
+  }
+})();
+</script>
+<script src="nav.js"></script>
+</body>
+</html>
