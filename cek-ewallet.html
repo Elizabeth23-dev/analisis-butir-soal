@@ -313,23 +313,6 @@
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* ---- toggle api key visibility ---- */
-  .toggle-vis {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    color: #64748b;
-    cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 8px;
-    display: grid;
-    place-items: center;
-  }
-  .toggle-vis:hover { color: #fff; background: rgba(255,255,255,0.05); }
-  .toggle-vis svg { width: 16px; height: 16px; }
 
   @media (max-width: 860px) {
     .grid {
@@ -395,19 +378,6 @@
           </div>
         </div>
 
-        <div class="form-group">
-          <label><span>API Key</span> <span class="opt">(Opsional)</span></label>
-          <div class="input-wrap">
-            <span class="input-icon">
-              <svg viewBox="0 0 24 24" fill="none"><circle cx="8" cy="12" r="4" stroke="currentColor" stroke-width="1.6"/><path d="m12 12 8 0M16 12v3M19 12v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            </span>
-            <input type="password" id="api-key" placeholder="MOCHI_xxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false" style="padding-right:44px" />
-            <button type="button" class="toggle-vis" id="toggle-key" aria-label="Tampilkan API key" title="Tampilkan">
-              <svg viewBox="0 0 24 24" fill="none" id="eye-icon"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.6"/></svg>
-            </button>
-          </div>
-        </div>
-
         <button type="submit" class="btn-submit" id="submit-btn">
           Kirim Data
           <svg viewBox="0 0 24 24" fill="none"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -465,17 +435,7 @@
   var statusDot    = document.getElementById('status-dot');
   var statusText   = document.getElementById('status-text');
   var copyBtn      = document.getElementById('copy-btn');
-  var toggleKey    = document.getElementById('toggle-key');
-  var apiKeyInput  = document.getElementById('api-key');
-
   var lastJson = '';
-
-  // toggle API key visibility
-  toggleKey.addEventListener('click', function () {
-    var isPassword = apiKeyInput.type === 'password';
-    apiKeyInput.type = isPassword ? 'text' : 'password';
-    toggleKey.title = isPassword ? 'Sembunyikan' : 'Tampilkan';
-  });
 
   // copy response
   copyBtn.addEventListener('click', function () {
@@ -529,7 +489,6 @@
 
     var ewalletCode = document.getElementById('ewallet-code').value;
     var phoneNumber = document.getElementById('phone-number').value.trim();
-    var apiKey      = document.getElementById('api-key').value.trim();
 
     if (!ewalletCode || !phoneNumber) return;
 
@@ -543,7 +502,6 @@
       ewallet_code: ewalletCode,
       phone_number: phoneNumber
     };
-    if (apiKey) body.api_key = apiKey;
 
     fetch(API_URL, {
       method: 'POST',
