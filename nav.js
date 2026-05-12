@@ -8,7 +8,8 @@
     { href: 'cronbach-alpha.html', label: "Cronbach's Alpha" },
     { href: 'validitas-konstruk.html', label: 'Validitas Konstruk' },
     { href: 'validitas-isi.html', label: 'Validitas Isi' },
-    { href: 'tempmail.html', label: 'TempMail' }
+    { href: 'tempmail.html', label: 'TempMail' },
+    { href: 'gpt/', label: 'GPT Generator' }
   ];
 
   const nav = document.createElement('nav');
