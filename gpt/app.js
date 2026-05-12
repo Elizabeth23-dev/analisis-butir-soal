@@ -13,34 +13,9 @@ const SPAM_COOLDOWN = 300; // 5 min
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded', async () => {
-    await Promise.all([loadStats(), loadCurrencies()]);
+    await loadCurrencies();
     setTimeout(openInfoModal, 800);
 });
-
-// ── Stats ──
-async function loadStats() {
-    try {
-        const r = await fetch(PROXY_BASE + '/api/stats');
-        const d = await r.json();
-        animateCounter('stat-total', d.total);
-        animateCounter('stat-team', d.team);
-        animateCounter('stat-plus', d.plus);
-    } catch { /* silent */ }
-}
-
-function animateCounter(id, target) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const duration = 1200;
-    const start = performance.now();
-    const step = (now) => {
-        const progress = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        el.textContent = Math.floor(eased * target).toLocaleString();
-        if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-}
 
 // ── Currencies ──
 async function loadCurrencies() {
@@ -83,9 +58,6 @@ function selectCurrency(c) {
     document.getElementById('currencyCode').value = c.key;
     document.getElementById('currencySearch').value = c.label;
     closeCurrencyDD();
-    document.querySelectorAll('.plan-price').forEach(el => {
-        el.textContent = c.currency + ' 0';
-    });
 }
 
 function openCurrencyDD() {
@@ -134,14 +106,6 @@ function selectPayment(value, label) {
     document.querySelectorAll('#paymentList .dd-item').forEach(el => {
         el.classList.toggle('active', el.dataset.value === value);
     });
-}
-
-// ── Plan Selection ──
-function selectPlan(plan) {
-    if (plan === 'team') return;
-    selectedPlan = plan;
-    const card = document.getElementById('plan-plus');
-    card.classList.add('selected');
 }
 
 // ── Generate ──
