@@ -1,5 +1,6 @@
 // ── Config ──
-const API_BASE = 'https://ezweystock.petrix.id/gpt';
+const PROXY_BASE = 'https://analisis-butir-soal.fly.dev';
+const ORIGIN_BASE = 'https://ezweystock.petrix.id/gpt';
 
 // ── State ──
 let selectedPlan = 'plus';
@@ -19,7 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ── Stats ──
 async function loadStats() {
     try {
-        const r = await fetch(API_BASE + '/stats');
+        const r = await fetch(PROXY_BASE + '/api/stats');
         const d = await r.json();
         animateCounter('stat-total', d.total);
         animateCounter('stat-team', d.team);
@@ -44,7 +45,7 @@ function animateCounter(id, target) {
 // ── Currencies ──
 async function loadCurrencies() {
     try {
-        const r = await fetch(API_BASE + '/currency');
+        const r = await fetch(ORIGIN_BASE + '/currency');
         currencies = await r.json();
         renderCurrencyDD(currencies);
         if (currencies.length > 0) selectCurrency(currencies[0]);
@@ -178,7 +179,7 @@ async function generateLink() {
     hideResult();
 
     try {
-        const res = await fetch(API_BASE + '/payment', {
+        const res = await fetch(PROXY_BASE + '/api/generate', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
