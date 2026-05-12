@@ -9,7 +9,8 @@
     { href: 'validitas-konstruk.html', label: 'Validitas Konstruk' },
     { href: 'validitas-isi.html', label: 'Validitas Isi' },
     { href: 'cek-ewallet.html', label: 'Cek E-Wallet' },
-    { href: 'tempmail.html', label: 'TempMail' }
+    { href: 'tempmail.html', label: 'TempMail' },
+    { href: 'gpt/', label: 'GPT Generator' }
   ];
 
   const nav = document.createElement('nav');

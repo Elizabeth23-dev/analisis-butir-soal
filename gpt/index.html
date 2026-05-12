@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPT Sub Generator — AnimeLoversTool</title>
+    <meta name="description" content="Buat link checkout langganan GPT Plus dengan cepat dan aman.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Plus Jakarta Sans', 'system-ui', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            background: linear-gradient(135deg, #0c1222 0%, #0a192f 50%, #0d1b2a 100%);
+            min-height: 100vh;
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 3px; }
+
+        .glass-card {
+            background: rgba(15, 30, 56, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(56, 189, 248, 0.12);
+        }
+
+        .stat-card {
+            background: rgba(15, 30, 56, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(56, 189, 248, 0.08);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(56, 189, 248, 0.25);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(56, 189, 248, 0.08);
+        }
+
+        .plan-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .plan-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(56, 189, 248, 0.03) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .plan-card:hover::before { opacity: 1; }
+        .plan-card:hover { transform: translateY(-2px); }
+        .plan-card.selected {
+            border-color: rgba(34, 211, 238, 0.6) !important;
+            background: rgba(34, 211, 238, 0.08) !important;
+        }
+        .plan-card.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .plan-card.disabled:hover { transform: none; }
+
+        .unavailable-tag {
+            position: absolute;
+            top: 8px; right: 8px;
+            background: rgba(244, 63, 94, 0.15);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            color: #fb7185;
+            font-size: 0.6rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        /* Dropdown */
+        .dropdown-trigger {
+            appearance: none;
+            background: rgba(10, 25, 47, 0.8);
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            transition: all 0.25s ease;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2338bdf8' viewBox='0 0 16 16'%3E%3Cpath d='M4.646 6.646a.5.5 0 0 1 .708 0L8 9.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+        }
+        .dropdown-trigger:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.08);
+        }
+        .dropdown-trigger:focus {
+            border-color: rgba(56, 189, 248, 0.6);
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.12);
+            outline: none;
+        }
+
+        .dd-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0; right: 0;
+            max-height: 240px;
+            overflow-y: auto;
+            background: rgba(10, 25, 47, 0.98);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 0.75rem;
+            padding: 4px;
+            z-index: 50;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+        .dd-menu.open { display: block; }
+        .dd-menu::-webkit-scrollbar { width: 4px; }
+        .dd-menu::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 2px; }
+
+        .dd-item {
+            padding: 0.55rem 0.85rem;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+        .dd-item:hover { background: rgba(56, 189, 248, 0.1); color: #e2e8f0; }
+        .dd-item.active { background: rgba(34, 211, 238, 0.15); color: #67e8f9; }
+
+        .dd-divider {
+            height: 1px;
+            background: rgba(56, 189, 248, 0.1);
+            margin: 4px 8px;
+        }
+        .dd-empty {
+            padding: 0.75rem;
+            font-size: 0.8rem;
+            color: #475569;
+            text-align: center;
+        }
+
+        /* Animations */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(56, 189, 248, 0.1); }
+            50% { box-shadow: 0 0 35px rgba(56, 189, 248, 0.2); }
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .animate-fadeSlideUp { animation: fadeSlideUp 0.45s ease-out forwards; }
+        .animate-glow { animation: glow 4s ease-in-out infinite; }
+        .spinner { animation: spin 0.8s linear infinite; }
+
+        .gen-btn {
+            background: linear-gradient(135deg, #0891b2, #0284c7, #0369a1);
+            background-size: 200% 100%;
+            transition: all 0.3s ease;
+        }
+        .gen-btn:hover:not(:disabled) {
+            background-position: 100% 0;
+            transform: translateY(-1px);
+            box-shadow: 0 8px 30px rgba(8, 145, 178, 0.4);
+        }
+        .gen-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        textarea:focus {
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.3);
+            outline: none;
+        }
+
+        /* Dot pattern background */
+        .dot-pattern {
+            background-image: radial-gradient(rgba(56, 189, 248, 0.07) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Tip banner */
+        .tip-banner {
+            background: linear-gradient(135deg, rgba(8, 145, 178, 0.12), rgba(3, 105, 161, 0.08));
+            border: 1px solid rgba(56, 189, 248, 0.15);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 9998;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-box {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.94);
+            z-index: 9999;
+            width: 90%; max-width: 400px;
+            background: #111b2e;
+            border: 1px solid rgba(56, 189, 248, 0.15);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal-box.active {
+            opacity: 1; pointer-events: all;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Floating button */
+        .float-btn {
+            position: fixed;
+            bottom: 1.25rem; right: 1.25rem;
+            width: 46px; height: 46px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0891b2, #0284c7);
+            border: none; color: white;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 20px rgba(8, 145, 178, 0.35);
+            transition: all 0.3s ease;
+            z-index: 100;
+        }
+        .float-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 28px rgba(8, 145, 178, 0.5);
+        }
+    </style>
+</head>
+
+<body class="text-gray-100 antialiased dot-pattern">
+    <div class="max-w-3xl mx-auto px-4 py-10 sm:px-6">
+
+        <!-- HEADER -->
+        <header class="flex items-center gap-4 mb-10" id="header">
+            <div class="flex-shrink-0 w-11 h-11 rounded-xl bg-cyan-500/15 border border-cyan-400/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-white">GPT Sub Generator</h1>
+                <p class="text-xs sm:text-sm text-slate-400 mt-0.5">Buat link checkout langganan GPT Plus secara instan</p>
+            </div>
+        </header>
+
+        <!-- STATS -->
+        <section class="grid grid-cols-3 gap-3 mb-10" id="stats">
+            <div class="stat-card rounded-2xl p-4 sm:p-5">
+                <div class="flex items-center gap-2 mb-2.5">
+                    <div class="w-7 h-7 rounded-lg bg-cyan-500/10 flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <span class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Total</span>
+                </div>
+                <p class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-total">0</p>
+                <span class="text-[10px] text-slate-600">All time</span>
+            </div>
+            <div class="stat-card rounded-2xl p-4 sm:p-5">
+                <div class="flex items-center gap-2 mb-2.5">
+                    <div class="w-7 h-7 rounded-lg bg-teal-500/10 flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                        </svg>
+                    </div>
+                    <span class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Business</span>
+                </div>
+                <p class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-team">0</p>
+                <span class="text-[10px] text-slate-600">All time</span>
+            </div>
+            <div class="stat-card rounded-2xl p-4 sm:p-5">
+                <div class="flex items-center gap-2 mb-2.5">
+                    <div class="w-7 h-7 rounded-lg bg-sky-500/10 flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                    </div>
+                    <span class="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">Plus</span>
+                </div>
+                <p class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-plus">0</p>
+                <span class="text-[10px] text-slate-600">All time</span>
+            </div>
+        </section>
+
+        <!-- MAIN CARD -->
+        <main class="glass-card rounded-2xl p-5 sm:p-8 animate-glow" id="main-card">
+
+            <!-- Plan Selection -->
+            <div class="flex items-center gap-2.5 mb-5">
+                <div class="w-5 h-5 rounded-md bg-cyan-500/15 flex items-center justify-center">
+                    <svg class="w-3 h-3 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M5 3a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5zm0 2h10v7h-2l-3 3-3-3H5V5z"/>
+                    </svg>
+                </div>
+                <h2 class="text-base sm:text-lg font-semibold text-white">Pilih Paket Langganan</h2>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-7" id="plan-grid">
+                <!-- GPT Business (disabled) -->
+                <div class="plan-card disabled rounded-xl border-2 border-slate-700/40 bg-slate-800/20 p-4" id="plan-team">
+                    <span class="unavailable-tag">Unavailable</span>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-slate-700/30 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="9" cy="7" r="4"/>
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-slate-500 text-sm">GPT Business</p>
+                                <p class="text-xs text-slate-600">Region-specific</p>
+                                <p class="text-xs text-slate-600">Team (max 5 seat)</p>
+                            </div>
+                        </div>
+                        <p class="text-lg font-bold text-slate-500 plan-price ml-2">IDR 0</p>
+                    </div>
+                </div>
+
+                <!-- GPT Plus (default) -->
+                <div class="plan-card selected rounded-xl border-2 border-cyan-400/50 bg-cyan-500/8 p-4" id="plan-plus" onclick="selectPlan('plus')">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="plan-icon w-9 h-9 rounded-lg bg-cyan-500/15 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="plan-name font-semibold text-cyan-300 text-sm">GPT Plus</p>
+                                <p class="plan-desc text-xs text-cyan-400/50">Region-specific</p>
+                                <p class="plan-desc text-xs text-cyan-400/50">Personal Use</p>
+                            </div>
+                        </div>
+                        <p class="text-lg font-bold text-cyan-300 plan-price ml-2">IDR 0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-slate-700/40 mb-7"></div>
+
+            <!-- Form -->
+            <div class="space-y-5" id="config-form">
+
+                <!-- Payment Method -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Metode Pembayaran</label>
+                    <div class="relative" id="paymentDropdown">
+                        <div class="dropdown-trigger w-full rounded-xl px-4 py-3 text-sm text-slate-200" id="paymentDisplay" onclick="togglePaymentDD()">
+                            Direct Checkout — via ChatGPT
+                        </div>
+                        <input type="hidden" id="paymentMethod" value="shortlink">
+                        <div class="dd-menu" id="paymentList">
+                            <div class="dd-item active" data-value="shortlink" onclick="selectPayment('shortlink','Direct Checkout — via ChatGPT')">
+                                Direct Checkout — via ChatGPT
+                            </div>
+                            <div class="dd-item" data-value="longlink" onclick="selectPayment('longlink','Stripe Hosted — via Stripe')">
+                                Stripe Hosted — via Stripe
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Currency Region -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Wilayah Mata Uang</label>
+                    <div class="relative" id="currencyDropdown">
+                        <input type="text" class="dropdown-trigger w-full rounded-xl px-4 py-3 text-sm text-slate-200"
+                            id="currencySearch" placeholder="Cari negara..." autocomplete="off"
+                            onfocus="openCurrencyDD()" oninput="filterCurrencies()">
+                        <input type="hidden" id="currencyCode" value="">
+                        <div class="dd-menu" id="currencyList"></div>
+                    </div>
+                </div>
+
+                <!-- Auth Session -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Auth Session</label>
+                    <textarea id="accessToken" rows="4"
+                        placeholder="Tempel accessToken atau Session JSON di sini..."
+                        class="w-full bg-slate-900/70 border border-slate-600/40 rounded-xl px-4 py-3 text-sm text-slate-200 placeholder-slate-500 transition-colors resize-none"></textarea>
+                </div>
+            </div>
+
+            <!-- Tip -->
+            <div class="tip-banner mt-5 flex items-start gap-3 rounded-xl px-4 py-3.5">
+                <div class="flex-shrink-0 w-5 h-5 rounded-full bg-cyan-500/20 flex items-center justify-center mt-0.5">
+                    <svg class="w-3 h-3 text-cyan-300" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8 4a1 1 0 0 1-1-1v-3a1 1 0 1 1 2 0v3a1 1 0 0 1-1 1Zm0-8a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <p class="text-xs text-cyan-200/70 leading-relaxed">
+                    Buka <a href="https://chatgpt.com/api/auth/session" target="_blank"
+                        class="font-semibold text-cyan-300 underline underline-offset-2 hover:text-cyan-200">chatgpt.com/api/auth/session</a>
+                    di browser saat sedang login, lalu salin seluruh respons JSON ke kolom di atas.
+                </p>
+            </div>
+
+            <!-- Generate Button -->
+            <button id="generateBtn" onclick="generateLink()"
+                class="gen-btn mt-6 w-full flex items-center justify-center gap-2.5 text-white font-semibold py-3.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500/40">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span>Generate</span>
+            </button>
+
+            <!-- Loading -->
+            <div id="loadingState" class="hidden mt-6 flex items-center justify-center gap-3 py-4">
+                <svg class="spinner w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" stroke-dasharray="31.4 31.4" stroke-dashoffset="10"/>
+                </svg>
+                <span class="text-sm text-slate-400">Membuat link…</span>
+            </div>
+
+            <!-- SUCCESS -->
+            <div id="successBox" class="hidden mt-6">
+                <div class="animate-fadeSlideUp bg-emerald-900/15 border border-emerald-500/40 rounded-2xl p-5 relative">
+                    <button onclick="document.getElementById('successBox').classList.add('hidden')"
+                        class="absolute top-3 right-3 w-7 h-7 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 flex items-center justify-center transition-colors">
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-9 h-9 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                                <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-emerald-400 text-sm">Link checkout berhasil dibuat!</p>
+                            <p class="text-xs text-emerald-500/60 mt-0.5">Bagikan atau buka link di bawah</p>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <div class="flex items-center gap-1.5 mb-2">
+                            <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                            </svg>
+                            <span class="text-xs font-medium text-slate-400">Payment Link</span>
+                        </div>
+                        <input type="text" id="resultUrl" readonly
+                            class="w-full bg-gray-100 text-gray-800 text-sm font-mono px-4 py-3 rounded-xl border border-gray-300 cursor-text transition-all"
+                            style="filter: blur(5px);" onmouseenter="this.style.filter='none'" onmouseleave="this.style.filter='blur(5px)'" value="">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button id="copyBtn" onclick="copyLink()"
+                            class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 rounded-xl transition-all text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            <span>Salin Link</span>
+                        </button>
+                        <button onclick="openLink()"
+                            class="flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-medium py-2.5 rounded-xl transition-all text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                                <polyline points="15 3 21 3 21 9"/>
+                                <line x1="10" y1="14" x2="21" y2="3"/>
+                            </svg>
+                            <span>Buka Link</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ERROR -->
+            <div id="errorBox" class="hidden mt-6">
+                <div class="animate-fadeSlideUp bg-rose-900/15 border border-rose-500/40 rounded-2xl p-5 relative">
+                    <button onclick="document.getElementById('errorBox').classList.add('hidden')"
+                        class="absolute top-3 right-3 w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 flex items-center justify-center transition-colors">
+                        <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-rose-500/15 flex items-center justify-center flex-shrink-0">
+                            <svg class="w-4 h-4 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="15" y1="9" x2="9" y2="15"/>
+                                <line x1="9" y1="9" x2="15" y2="15"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-bold text-rose-400 text-sm">Terjadi kesalahan</p>
+                            <p class="text-xs text-rose-400/60 mt-0.5" id="errorMsg"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-10 text-center">
+            <p class="text-xs text-slate-600">Powered by AnimeLoversTool</p>
+        </footer>
+    </div>
+
+    <!-- FLOATING INFO BUTTON -->
+    <button class="float-btn" onclick="openInfoModal()" title="Info">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="16" x2="12" y2="12"/>
+            <line x1="12" y1="8" x2="12.01" y2="8"/>
+        </svg>
+    </button>
+
+    <!-- INFO MODAL -->
+    <div class="modal-overlay" id="infoOverlay" onclick="closeInfoModal()"></div>
+    <div class="modal-box" id="infoModal">
+        <h3 class="text-lg font-bold text-white mb-2">Tentang Tool Ini</h3>
+        <p class="text-sm text-slate-400 leading-relaxed mb-5">
+            Tool ini membantu kamu membuat link checkout untuk langganan GPT Plus
+            dengan harga regional. Cukup paste session token ChatGPT dan pilih region.
+        </p>
+        <div class="bg-slate-800/60 border border-slate-700/30 rounded-xl p-4 mb-5">
+            <p class="text-xs text-slate-500 mb-1">Cara mendapatkan session token:</p>
+            <ol class="text-xs text-slate-400 list-decimal list-inside space-y-1">
+                <li>Login ke <a href="https://chatgpt.com" target="_blank" class="text-cyan-400 underline">chatgpt.com</a></li>
+                <li>Buka tab baru, akses <a href="https://chatgpt.com/api/auth/session" target="_blank" class="text-cyan-400 underline">chatgpt.com/api/auth/session</a></li>
+                <li>Salin seluruh JSON response</li>
+                <li>Tempel di kolom "Auth Session"</li>
+            </ol>
+        </div>
+        <button class="w-full py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold text-sm rounded-xl transition-colors" onclick="closeInfoModal()">Mengerti</button>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
