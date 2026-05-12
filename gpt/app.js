@@ -161,7 +161,6 @@ async function generateLink() {
         if (data.success) {
             failedAttempts = 0;
             showSuccess(data.url);
-            loadStats();
             startCooldown(60);
         } else {
             if (res.status === 429 && data.spam) {
