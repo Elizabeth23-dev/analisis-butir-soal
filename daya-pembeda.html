@@ -528,7 +528,7 @@
             <!-- Detail Mode -->
             <div id="mode-detail" class="tab-content">
                 <div class="alert alert-info">
-                    Masukkan skor masing-masing siswa per butir soal. Sistem akan otomatis membagi kelompok atas dan bawah (27% teratas & terbawah).
+                    Masukkan skor masing-masing siswa per butir soal. Sistem akan otomatis membagi kelompok atas dan bawah sesuai persentase yang dipilih.
                 </div>
                 <div class="row">
                     <div class="input-group">
@@ -542,6 +542,17 @@
                     <div class="input-group">
                         <label>Skor Maksimal per Soal</label>
                         <input type="number" id="max-score" value="1" min="1" max="100">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-group">
+                        <label>Persentase Kelompok Atas/Bawah</label>
+                        <div class="hint">Populasi &gt; 30 &rarr; 27% &bull; Populasi &le; 30 &rarr; 50%</div>
+                        <select id="group-percentage">
+                            <option value="auto" selected>Otomatis (berdasarkan jumlah siswa)</option>
+                            <option value="27">27% (populasi &gt; 30)</option>
+                            <option value="50">50% (populasi &le; 30)</option>
+                        </select>
                     </div>
                 </div>
                 <div class="data-table-container">
@@ -718,8 +729,19 @@
             // Sort by total descending
             students.sort((a, b) => b.total - a.total);
 
-            // 27% upper and lower groups
-            const groupSize = Math.max(1, Math.ceil(numStudents * 0.27));
+            // Tentukan persentase kelompok atas/bawah
+            const pctChoice = document.getElementById('group-percentage').value;
+            let groupPct;
+            if (pctChoice === '27') {
+                groupPct = 0.27;
+            } else if (pctChoice === '50') {
+                groupPct = 0.50;
+            } else {
+                // auto: > 30 siswa pakai 27%, selain itu 50%
+                groupPct = numStudents > 30 ? 0.27 : 0.50;
+            }
+
+            const groupSize = Math.max(1, Math.ceil(numStudents * groupPct));
             const upperGroup = students.slice(0, groupSize);
             const lowerGroup = students.slice(numStudents - groupSize);
 
