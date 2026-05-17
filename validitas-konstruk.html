@@ -707,53 +707,122 @@ function exportXlsx() {
   if (!last) { alert("Belum ada hasil. Klik \"Hitung r_XY & Validitas\" dahulu."); return; }
   const { results, rTabel, names, rows } = last;
   const k = results.length;
+  const colLetter = (idx) => {
+    let letters = "";
+    let c = idx;
+    do {
+      letters = String.fromCharCode(65 + (c % 26)) + letters;
+      c = Math.floor(c / 26) - 1;
+    } while (c >= 0);
+    return letters;
+  };
+  const fNum = (x) => Number.isFinite(x) ? Number(x.toFixed(6)) : null;
 
   // Sheet Input: Peserta + B1..Bk + Total
+  // Kolom Total diisi formula =SUM(...) agar ikut terhitung di Excel.
   const inputRows = [["Peserta"]];
   for (let j = 1; j <= k; j++) inputRows[0].push("B" + j);
   inputRows[0].push("Total (Y)");
+  const firstButirCol = colLetter(1); // B
+  const lastButirCol = colLetter(k); // kolom butir terakhir
+  const totalCol = colLetter(k + 1);
+  const firstDataRow = 2;
+  const lastDataRow = rows.length + 1;
   for (let i = 0; i < rows.length; i++) {
+    const xlRow = i + firstDataRow;
     const total = rows[i].reduce((a, b) => a + b, 0);
-    inputRows.push([names[i] || ("P" + (i + 1)), ...rows[i], total]);
+    const fTotal = "SUM(" + firstButirCol + xlRow + ":" + lastButirCol + xlRow + ")";
+    inputRows.push([
+      names[i] || ("P" + (i + 1)),
+      ...rows[i],
+      { f: fTotal, v: total }
+    ]);
   }
 
-  // Sheet Hasil: ringkasan per butir
-  const hasilRows = [["Butir", "\u03A3X", "\u03A3X\u00B2", "\u03A3XY", "r_hitung", "r_tabel", "Keputusan"]];
+  // Sheet Detail: kolom intermediate dengan formula
+  // Header di baris 1; data butir j berada di baris j+1 (Detail Excel row)
+  const detailRows = [[
+    "Butir", "n", "\u03A3X", "\u03A3X\u00B2", "\u03A3Y", "\u03A3Y\u00B2", "\u03A3XY",
+    "Pembilang", "n\u00B7\u03A3X\u00B2 - (\u03A3X)\u00B2", "n\u00B7\u03A3Y\u00B2 - (\u03A3Y)\u00B2",
+    "Penyebut", "r_XY"
+  ]];
+  results.forEach((res, idx) => {
+    const xlRow = idx + 2;
+    // Kolom butir di Input untuk butir res.butir adalah colLetter(res.butir)
+    const xCol = colLetter(res.butir);
+    const xRange = "'Input'!" + xCol + firstDataRow + ":" + xCol + lastDataRow;
+    const yRange = "'Input'!" + totalCol + firstDataRow + ":" + totalCol + lastDataRow;
+    const cN = "B" + xlRow;
+    const cSumX = "C" + xlRow;
+    const cSumX2 = "D" + xlRow;
+    const cSumY = "E" + xlRow;
+    const cSumY2 = "F" + xlRow;
+    const cSumXY = "G" + xlRow;
+    const cNum = "H" + xlRow;
+    const cDen1 = "I" + xlRow;
+    const cDen2 = "J" + xlRow;
+    const cDen = "K" + xlRow;
+
+    detailRows.push([
+      "Butir " + res.butir,
+      res.n,
+      { f: "SUM(" + xRange + ")", v: fNum(res.sumX) },
+      { f: "SUMSQ(" + xRange + ")", v: fNum(res.sumX2) },
+      { f: "SUM(" + yRange + ")", v: fNum(res.sumY) },
+      { f: "SUMSQ(" + yRange + ")", v: fNum(res.sumY2) },
+      { f: "SUMPRODUCT(" + xRange + "," + yRange + ")", v: fNum(res.sumXY) },
+      { f: cN + "*" + cSumXY + " - " + cSumX + "*" + cSumY, v: fNum(res.numerator) },
+      { f: cN + "*" + cSumX2 + " - " + cSumX + "*" + cSumX, v: fNum(res.denomPart1) },
+      { f: cN + "*" + cSumY2 + " - " + cSumY + "*" + cSumY, v: fNum(res.denomPart2) },
+      { f: "SQRT(" + cDen1 + "*" + cDen2 + ")", v: fNum(res.denom) },
+      { f: "IF(" + cDen + "=0,NA()," + cNum + "/" + cDen + ")", v: fNum(res.r) }
+    ]);
+  });
+
+  // Sheet Hasil: ringkasan per butir; nilai dirujuk dari Detail agar
+  // pengguna langsung melihat sumber perhitungannya.
+  const hasilRows = [[
+    "Butir", "\u03A3X", "\u03A3X\u00B2", "\u03A3XY", "r_hitung", "r_tabel", "Keputusan"
+  ]];
   let nValid = 0, nInvalid = 0, nUndef = 0;
-  results.forEach(res => {
+  results.forEach((res, idx) => {
+    const detRow = idx + 2;
     let decision;
     if (Number.isFinite(res.r) && Number.isFinite(rTabel)) {
       if (res.r > rTabel) { decision = "Valid"; nValid++; } else { decision = "Tidak Valid"; nInvalid++; }
     } else { decision = "Tidak Terdefinisi"; nUndef++; }
+    const hRow = idx + 2; // baris Excel di Hasil
+    const cR = "E" + hRow;
+    const cRT = "F" + hRow;
     hasilRows.push([
       "Butir " + res.butir,
-      Number.isFinite(res.sumX) ? res.sumX : null,
-      Number.isFinite(res.sumX2) ? res.sumX2 : null,
-      Number.isFinite(res.sumXY) ? res.sumXY : null,
-      Number.isFinite(res.r) ? Number(res.r.toFixed(6)) : null,
+      { f: "'Detail'!C" + detRow, v: fNum(res.sumX) },
+      { f: "'Detail'!D" + detRow, v: fNum(res.sumX2) },
+      { f: "'Detail'!G" + detRow, v: fNum(res.sumXY) },
+      { f: "'Detail'!L" + detRow, v: fNum(res.r) },
       Number.isFinite(rTabel) ? rTabel : null,
-      decision
+      Number.isFinite(rTabel)
+        ? { f: "IF(ISNUMBER(" + cR + ")," + "IF(" + cR + ">" + cRT + ",\"Valid\",\"Tidak Valid\"),\"Tidak Terdefinisi\")", v: decision }
+        : decision
     ]);
   });
   hasilRows.push([]);
-  hasilRows.push(["Ringkasan", "Valid", nValid]);
-  hasilRows.push(["", "Tidak Valid", nInvalid]);
-  if (nUndef) hasilRows.push(["", "Tidak Terdefinisi", nUndef]);
-
-  // Sheet Detail: kolom intermediate
-  const detailRows = [[
-    "Butir", "n", "\u03A3X", "\u03A3X\u00B2", "\u03A3Y", "\u03A3Y\u00B2", "\u03A3XY",
-    "Pembilang", "n\u00B7\u03A3X\u00B2 - (\u03A3X)\u00B2", "n\u00B7\u03A3Y\u00B2 - (\u03A3Y)\u00B2", "Penyebut", "r_XY"
-  ]];
-  results.forEach(res => {
-    detailRows.push([
-      "Butir " + res.butir, res.n,
-      res.sumX, res.sumX2, res.sumY, res.sumY2, res.sumXY,
-      res.numerator, res.denomPart1, res.denomPart2,
-      Number.isFinite(res.denom) ? Number(res.denom.toFixed(6)) : null,
-      Number.isFinite(res.r) ? Number(res.r.toFixed(6)) : null
-    ]);
-  });
+  hasilRows.push(["Rumus r_XY", "r = [n\u00B7\u03A3XY \u2212 \u03A3X\u00B7\u03A3Y] / \u221A[(n\u00B7\u03A3X\u00B2 \u2212 (\u03A3X)\u00B2)(n\u00B7\u03A3Y\u00B2 \u2212 (\u03A3Y)\u00B2)]"]);
+  hasilRows.push(["Keputusan", "Valid jika r_hitung > r_tabel"]);
+  const lastH = results.length + 1;
+  hasilRows.push([]);
+  hasilRows.push([
+    "Ringkasan", "Valid",
+    { f: "COUNTIF(G2:G" + lastH + ",\"Valid\")", v: nValid }
+  ]);
+  hasilRows.push([
+    "", "Tidak Valid",
+    { f: "COUNTIF(G2:G" + lastH + ",\"Tidak Valid\")", v: nInvalid }
+  ]);
+  if (nUndef) hasilRows.push([
+    "", "Tidak Terdefinisi",
+    { f: "COUNTIF(G2:G" + lastH + ",\"Tidak Terdefinisi\")", v: nUndef }
+  ]);
 
   window.absExportXLSX("hasil_validitas_konstruk.xlsx", [
     { name: "Hasil", rows: hasilRows },

@@ -1163,25 +1163,68 @@
             return;
         }
         const sheets = [];
-        const hasilRows = [['Butir Soal', 'SA', 'SB', 'IA', 'IB', 'TK', 'Interpretasi']];
-        lastResults.forEach(r => {
+
+        // Bangun sheet Hasil dengan formula Excel agar proses perhitungan
+        // ikut terbaca di file Excel.
+        const hasilRows = [[
+            'Butir Soal', 'SA', 'SB', 'IA', 'IB',
+            'Substitusi Rumus', 'TK', 'Interpretasi'
+        ]];
+        lastResults.forEach((r, i) => {
+            const rowNum = i + 2; // baris Excel (header di baris 1)
+            const cSA = 'B' + rowNum;
+            const cSB = 'C' + rowNum;
+            const cIA = 'D' + rowNum;
+            const cIB = 'E' + rowNum;
+            const cTK = 'G' + rowNum;
+
+            const fSubstitusi =
+                '"(" & ' + cSA + ' & " + " & ' + cSB + ' & ") / (" & ' + cIA +
+                ' & " + " & ' + cIB + ' & ") = " & TEXT(' + cTK + ', "0.0000")';
+            const fTK = 'IF((' + cIA + '+' + cIB + ')=0,0,(' + cSA + '+' + cSB + ')/(' + cIA + '+' + cIB + '))';
+            const fInterp =
+                'IF(' + cTK + '=0,"Sangat Sukar",' +
+                'IF(' + cTK + '<=0.3,"Sukar",' +
+                'IF(' + cTK + '<=0.7,"Sedang",' +
+                'IF(' + cTK + '<1,"Mudah","Sangat Mudah"))))';
+
+            const substStr =
+                '(' + r.SA + ' + ' + r.SB + ') / (' + r.IA + ' + ' + r.IB +
+                ') = ' + r.TK.toFixed(4);
+
             hasilRows.push([
-                `Soal ${r.soal}`, r.SA, r.SB, r.IA, r.IB,
-                Number(r.TK.toFixed(4)), r.interpretasi.label
+                'Soal ' + r.soal, r.SA, r.SB, r.IA, r.IB,
+                { f: fSubstitusi, v: substStr },
+                { f: fTK, v: Number(r.TK.toFixed(6)) },
+                { f: fInterp, v: r.interpretasi.label }
             ]);
         });
-        // Ringkasan
-        const counts = { 'Sangat Sukar': 0, 'Sukar': 0, 'Sedang': 0, 'Mudah': 0, 'Sangat Mudah': 0 };
-        lastResults.forEach(r => { if (counts[r.interpretasi.label] !== undefined) counts[r.interpretasi.label]++; });
+
+        hasilRows.push([]);
+        hasilRows.push(['Rumus', 'TK = (SA + SB) / (IA + IB)']);
+        hasilRows.push(['Keterangan', 'SA/SB = skor kel. atas/bawah, IA/IB = skor ideal kel. atas/bawah']);
+
+        // Ringkasan dengan formula AVERAGE & COUNTIF
+        const last = lastResults.length + 1;
+        const rangeTK = 'G2:G' + last;
+        const rangeInterp = 'H2:H' + last;
         const avgTK = lastResults.reduce((s, r) => s + r.TK, 0) / lastResults.length;
         hasilRows.push([]);
-        hasilRows.push(['Rata-rata TK', Number(avgTK.toFixed(4))]);
+        hasilRows.push([
+            'Rata-rata TK',
+            { f: 'AVERAGE(' + rangeTK + ')', v: Number(avgTK.toFixed(6)) }
+        ]);
         if (lastTotalPeserta) {
             hasilRows.push(['Jumlah Peserta', lastTotalPeserta]);
             hasilRows.push(['Ukuran Kelompok Atas/Bawah', lastGroupSize]);
         }
+        const counts = { 'Sangat Sukar': 0, 'Sukar': 0, 'Sedang': 0, 'Mudah': 0, 'Sangat Mudah': 0 };
+        lastResults.forEach(r => { if (counts[r.interpretasi.label] !== undefined) counts[r.interpretasi.label]++; });
         ['Sangat Sukar', 'Sukar', 'Sedang', 'Mudah', 'Sangat Mudah'].forEach(k => {
-            hasilRows.push([k, counts[k]]);
+            hasilRows.push([
+                k,
+                { f: 'COUNTIF(' + rangeInterp + ',"' + k + '")', v: counts[k] }
+            ]);
         });
         sheets.push({ name: 'Hasil', rows: hasilRows });
 
