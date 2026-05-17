@@ -889,9 +889,94 @@
                 alert('Hitung Daya Pembeda terlebih dahulu sebelum mengekspor.');
                 return;
             }
-            const sheets = [];
-            const resultsTable = document.getElementById('results-table');
-            sheets.push({ name: 'Hasil', rows: tableToRows(resultsTable) });
+
+            // Bangun sheet Hasil dengan formula Excel agar proses perhitungan
+            // terlihat langsung di file Excel (klik sel DP untuk melihat rumus).
+            const tbody = document.getElementById('results-tbody');
+            const lastResults = [];
+            tbody.querySelectorAll('tr').forEach((tr, idx) => {
+                const tds = tr.querySelectorAll('td');
+                const sa = parseFloat(tds[1].innerText.replace(',', '.'));
+                const sb = parseFloat(tds[2].innerText.replace(',', '.'));
+                const ia = parseFloat(tds[3].innerText.replace(',', '.'));
+                const dp = parseFloat(tds[4].innerText.replace(',', '.'));
+                lastResults.push({ no: idx + 1, sa, sb, ia, dp });
+            });
+
+            const hasilRows = [[
+                'No. Soal', 'SA', 'SB', 'IA',
+                'Substitusi Rumus', 'DP', 'Interpretasi', 'Kelayakan'
+            ]];
+            lastResults.forEach((r, i) => {
+                const row = i + 2; // baris Excel (header di baris 1)
+                const colSA = 'B' + row;
+                const colSB = 'C' + row;
+                const colIA = 'D' + row;
+                const colDP = 'F' + row;
+                // Catatan: formula dimulai tanpa '='; SheetJS menambahkannya saat menulis.
+                const fSubstitusi =
+                    '"(" & ' + colSA + ' & " - " & ' + colSB + ' & ") / " & ' + colIA +
+                    ' & " = " & TEXT(' + colDP + ', "0.0000")';
+                const fDP = '(' + colSA + ' - ' + colSB + ') / ' + colIA;
+                const fInterp =
+                    'IF(' + colDP + '<0,"Sangat Jelek",' +
+                    'IF(' + colDP + '<0.2,"Jelek",' +
+                    'IF(' + colDP + '<0.4,"Cukup",' +
+                    'IF(' + colDP + '<0.7,"Baik","Sangat Baik"))))';
+                const fLayak =
+                    'IF(AND(' + colDP + '>=0.2,' + colDP + '<=1),"Layak","Tidak Layak")';
+
+                const interpLabel = classifyDP(r.dp).label;
+                const layakLabel = isLayak(r.dp) ? 'Layak' : 'Tidak Layak';
+                const substStr =
+                    '(' + r.sa + ' - ' + r.sb + ') / ' + r.ia +
+                    ' = ' + r.dp.toFixed(4);
+
+                hasilRows.push([
+                    r.no, r.sa, r.sb, r.ia,
+                    { f: fSubstitusi, v: substStr },
+                    { f: fDP, v: Number(r.dp.toFixed(6)) },
+                    { f: fInterp, v: interpLabel },
+                    { f: fLayak, v: layakLabel }
+                ]);
+            });
+
+            // Rumus & legenda di bawah tabel hasil
+            hasilRows.push([]);
+            hasilRows.push(['Rumus', 'DP = (SA - SB) / IA']);
+            hasilRows.push(['Keterangan', 'SA = skor kel. atas, SB = skor kel. bawah, IA = skor ideal kel. atas']);
+
+            // Ringkasan distribusi (COUNTIF) — referensi ke kolom Interpretasi (G)
+            const last = lastResults.length + 1; // baris terakhir data
+            const rangeG = 'G2:G' + last;
+            const rangeH = 'H2:H' + last;
+            hasilRows.push([]);
+            hasilRows.push(['Ringkasan Distribusi', 'Jumlah Butir']);
+            [
+                ['Sangat Jelek', 'Sangat Jelek'],
+                ['Jelek',        'Jelek'],
+                ['Cukup',        'Cukup'],
+                ['Baik',         'Baik'],
+                ['Sangat Baik',  'Sangat Baik']
+            ].forEach(pair => {
+                const label = pair[0];
+                const count = lastResults.filter(r => classifyDP(r.dp).label === label).length;
+                hasilRows.push([
+                    label,
+                    { f: 'COUNTIF(' + rangeG + ',"' + pair[1] + '")', v: count }
+                ]);
+            });
+            const layakCount = lastResults.filter(r => isLayak(r.dp)).length;
+            hasilRows.push([
+                'Soal Layak',
+                { f: 'COUNTIF(' + rangeH + ',"Layak")', v: layakCount }
+            ]);
+            hasilRows.push([
+                'Soal Tidak Layak',
+                { f: 'COUNTIF(' + rangeH + ',"Tidak Layak")', v: lastResults.length - layakCount }
+            ]);
+
+            const sheets = [{ name: 'Hasil', rows: hasilRows }];
 
             // Sheet input sesuai mode aktif
             if (currentMode === 'summary') {
