@@ -951,33 +951,106 @@ Item1  Item2  Item3  Item4  Item5
                 return;
             }
             const c = lastCalc;
-            // Sheet Hasil: ringkasan + interpretasi
-            const hasil = [
-                ['Metrik', 'Nilai'],
-                ['Jumlah Butir (n)', c.n],
-                ['Jumlah Responden', c.r],
-                ['Sum Varians Item (\u03A3 si\u00B2)', Number(c.sumItemVariances.toFixed(4))],
-                ['Varians Total (st\u00B2)', Number(c.totalVariance.toFixed(4))],
-                ['Cronbach\'s Alpha (\u03B1)', Number(c.alpha.toFixed(4))],
-                ['Interpretasi', c.interpretation]
-            ];
-            // Sheet Input: tabel skor responden x item
+            const colLetter = (idx) => {
+                // 0 -> A, 1 -> B, ...
+                let letters = '';
+                let k = idx;
+                do {
+                    letters = String.fromCharCode(65 + (k % 26)) + letters;
+                    k = Math.floor(k / 26) - 1;
+                } while (k >= 0);
+                return letters;
+            };
+            const firstItemCol = colLetter(1); // B (kolom Item 1)
+            const lastItemCol = colLetter(c.n); // kolom Item n
+            const totalCol = colLetter(c.n + 1); // kolom Total
+            const firstDataRow = 2;
+            const lastDataRow = c.r + 1; // header di baris 1
+
+            // Sheet Input: tabel skor responden x item, kolom Total memakai SUM
             const input = [['Responden']];
             for (let j = 1; j <= c.n; j++) input[0].push('Item ' + j);
             input[0].push('Total');
             for (let i = 0; i < c.r; i++) {
+                const xlRow = i + firstDataRow;
                 const row = ['R' + (i + 1)];
                 for (let j = 0; j < c.n; j++) row.push(c.data[i][j]);
-                row.push(c.totalScores[i]);
+                const fTotal = 'SUM(' + firstItemCol + xlRow + ':' + lastItemCol + xlRow + ')';
+                row.push({ f: fTotal, v: c.totalScores[i] });
                 input.push(row);
             }
-            // Sheet Item Stats
+
+            // Sheet Statistik Item: rata-rata (AVERAGE) & varians populasi (VARP)
+            // Referensi lintas-sheet ke 'Input'!<col>2:<col><lastDataRow>
             const stats = [['Item', 'Rata-rata', 'Varians (si\u00B2)']];
             for (let j = 0; j < c.n; j++) {
-                stats.push(['Item ' + (j + 1), Number(c.itemMeans[j].toFixed(4)), Number(c.itemVariances[j].toFixed(4))]);
+                const refCol = colLetter(j + 1);
+                const range = "'Input'!" + refCol + firstDataRow + ':' + refCol + lastDataRow;
+                stats.push([
+                    'Item ' + (j + 1),
+                    { f: 'AVERAGE(' + range + ')', v: Number(c.itemMeans[j].toFixed(6)) },
+                    { f: 'VARP(' + range + ')', v: Number(c.itemVariances[j].toFixed(6)) }
+                ]);
             }
-            stats.push([]);
-            stats.push(['\u03A3 si\u00B2', '', Number(c.sumItemVariances.toFixed(4))]);
+            // Sum varians item — referensi ke kolom C (Varians) di sheet Statistik Item
+            const sumVarRange = 'C2:C' + (c.n + 1);
+            stats.push([
+                'Σ si²', '',
+                { f: 'SUM(' + sumVarRange + ')', v: Number(c.sumItemVariances.toFixed(6)) }
+            ]);
+            const sumVarCellRef = "'Statistik Item'!C" + (c.n + 2);
+
+            // Sheet Hasil: ringkasan + perhitungan langkah demi langkah
+            const totalRange = "'Input'!" + totalCol + firstDataRow + ':' + totalCol + lastDataRow;
+            const hasil = [
+                ['Metrik', 'Nilai', 'Rumus / Sumber'],
+                ['Jumlah Butir (n)', c.n, ''],
+                ['Jumlah Responden', c.r, ''],
+                [
+                    'Σ si² (Sum Varians Item)',
+                    { f: sumVarCellRef, v: Number(c.sumItemVariances.toFixed(6)) },
+                    'lihat sheet "Statistik Item"'
+                ],
+                [
+                    'st² (Varians Total)',
+                    { f: 'VARP(' + totalRange + ')', v: Number(c.totalVariance.toFixed(6)) },
+                    'VARP(Total skor responden)'
+                ]
+            ];
+            // Baris-baris perhitungan alpha menggunakan formula yang merujuk ke
+            // baris di atasnya (kolom B = nilai).
+            // hasil saat ini punya 5 baris (header + 4 baris data) -> baris Excel 1..5
+            // Σsi² ada di B4, st² di B5
+            const fNoverNm1 = '(B2/(B2-1))';
+            const fRatio = '(B4/B5)';
+            const fAlpha = '(B2/(B2-1))*(1-B4/B5)';
+            const fInterp =
+                'IF(B8<=0.2,"Sedikit Reliabel",' +
+                'IF(B8<=0.4,"Kurang Reliabel",' +
+                'IF(B8<=0.6,"Cukup",' +
+                'IF(B8<=0.8,"Reliabel","Sangat Reliabel"))))';
+            const nOverNm1 = c.n / (c.n - 1);
+            const ratio = c.totalVariance === 0 ? 0 : c.sumItemVariances / c.totalVariance;
+            hasil.push([
+                'n / (n − 1)',
+                { f: fNoverNm1, v: Number(nOverNm1.toFixed(6)) },
+                'B2 / (B2 − 1)'
+            ]);
+            hasil.push([
+                'Σsi² / st²',
+                { f: fRatio, v: Number(ratio.toFixed(6)) },
+                'B4 / B5'
+            ]);
+            hasil.push([
+                "Cronbach's Alpha (α)",
+                { f: fAlpha, v: Number(c.alpha.toFixed(6)) },
+                'α = (n/(n−1)) × (1 − Σsi²/st²)'
+            ]);
+            hasil.push([
+                'Interpretasi',
+                { f: fInterp, v: c.interpretation },
+                'Berdasarkan nilai α'
+            ]);
 
             window.absExportXLSX('hasil_cronbach_alpha.xlsx', [
                 { name: 'Hasil', rows: hasil },
