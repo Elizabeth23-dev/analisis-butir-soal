@@ -499,14 +499,31 @@
   function exportXlsx() {
     calculate();
     const { n, items, lo, c, itemNames, scores } = state;
-    // Sheet Hasil: per butir
+    const colLetter = (idx) => {
+      let letters = '';
+      let k = idx;
+      do {
+        letters = String.fromCharCode(65 + (k % 26)) + letters;
+        k = Math.floor(k / 26) - 1;
+      } while (k >= 0);
+      return letters;
+    };
+    // Layout sheet Hasil:
+    //  A: Butir, B: Nama Butir, C..(n+2): V1..Vn, (n+3): Σs, (n+4): V, (n+5): Kategori
+    const firstVCol = colLetter(2);            // C
+    const lastVCol = colLetter(n + 1);          // kolom Vn
+    const sumColLetter = colLetter(n + 2);      // Σs
+    const vColLetter = colLetter(n + 3);        // V
+    const denom = n * (c - lo);
+
     const hasilHeader = ['Butir', 'Nama Butir'];
     for (let j = 1; j <= n; j++) hasilHeader.push('V' + j);
     hasilHeader.push('\u03A3s', 'V', 'Kategori');
     const hasilRows = [hasilHeader];
-    const denom = n * (c - lo);
+
     const vList = [];
     for (let i = 0; i < items; i++) {
+      const xlRow = i + 2;
       const row = ['Butir ' + (i + 1), itemNames[i] || ''];
       const arr = scores[i] || [];
       let sumS = 0;
@@ -520,19 +537,49 @@
       if (valid && denom > 0) {
         const v = sumS / denom;
         vList.push(v);
-        row.push(sumS, Number(v.toFixed(4)), categorize(v).label);
+        const vRange = firstVCol + xlRow + ':' + lastVCol + xlRow;
+        const cSum = sumColLetter + xlRow;
+        const cV = vColLetter + xlRow;
+        // Σs = SUM(V1..Vn) − n·lo (karena S = r − lo per validator)
+        const fSumS = 'SUM(' + vRange + ')-' + n + '*' + lo;
+        const fV = cSum + '/(' + n + '*(' + c + '-' + lo + '))';
+        const fKategori =
+          'IF(' + cV + '>0.8,"Tinggi",' +
+          'IF(' + cV + '>=0.4,"Sedang","Rendah"))';
+        row.push(
+          { f: fSumS, v: sumS },
+          { f: fV, v: Number(v.toFixed(6)) },
+          { f: fKategori, v: categorize(v).label }
+        );
       } else {
         row.push(null, null, '—');
       }
       hasilRows.push(row);
     }
-    // Ringkasan
+
+    // Ringkasan agregat dengan formula AVERAGE/MIN/MAX
+    hasilRows.push([]);
+    hasilRows.push(['Rumus', 'V = \u03A3s / [n(c \u2212 lo)], dengan s = r \u2212 lo']);
     hasilRows.push([]);
     if (vList.length) {
+      const lastItemRow = items + 1; // baris Excel terakhir untuk butir
+      const vRangeAll = vColLetter + '2:' + vColLetter + lastItemRow;
       const avg = vList.reduce((a, b) => a + b, 0) / vList.length;
-      hasilRows.push(['V rata-rata instrumen', '', '', Number(avg.toFixed(4)), categorize(avg).label]);
-      hasilRows.push(['V minimum', '', '', Number(Math.min(...vList).toFixed(4))]);
-      hasilRows.push(['V maksimum', '', '', Number(Math.max(...vList).toFixed(4))]);
+      const minV = Math.min(...vList);
+      const maxV = Math.max(...vList);
+      hasilRows.push([
+        'V rata-rata instrumen', '', '',
+        { f: 'AVERAGE(' + vRangeAll + ')', v: Number(avg.toFixed(6)) },
+        categorize(avg).label
+      ]);
+      hasilRows.push([
+        'V minimum', '', '',
+        { f: 'MIN(' + vRangeAll + ')', v: Number(minV.toFixed(6)) }
+      ]);
+      hasilRows.push([
+        'V maksimum', '', '',
+        { f: 'MAX(' + vRangeAll + ')', v: Number(maxV.toFixed(6)) }
+      ]);
     }
     hasilRows.push([]);
     hasilRows.push(['Parameter', 'Nilai']);
